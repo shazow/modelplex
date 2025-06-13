@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        go-version: ['1.21', '1.22']
+        go-version: ['1.23', '1.24.4']
     
     steps:
     - name: Checkout code
@@ -63,7 +63,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
-        go-version: '1.21'
+        go-version: '1.24.4'
 
     - name: Install goimports
       run: go install golang.org/x/tools/cmd/goimports@latest
@@ -110,7 +110,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
-        go-version: '1.21'
+        go-version: '1.24.4'
 
     - name: Build binary
       env:
@@ -138,7 +138,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
-        go-version: '1.21'
+        go-version: '1.24.4'
 
     - name: Run Gosec Security Scanner
       run: |
