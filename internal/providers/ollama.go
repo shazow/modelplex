@@ -18,6 +18,7 @@ import (
 	"github.com/modelplex/modelplex/internal/config"
 )
 
+// OllamaProvider implements the Provider interface for Ollama local API.
 type OllamaProvider struct {
 	name     string
 	baseURL  string
@@ -26,6 +27,7 @@ type OllamaProvider struct {
 	client   *http.Client
 }
 
+// NewOllamaProvider creates a new Ollama provider instance.
 func NewOllamaProvider(cfg *config.Provider) *OllamaProvider {
 	return &OllamaProvider{
 		name:     cfg.Name,
@@ -36,18 +38,22 @@ func NewOllamaProvider(cfg *config.Provider) *OllamaProvider {
 	}
 }
 
+// Name returns the provider name.
 func (p *OllamaProvider) Name() string {
 	return p.name
 }
 
+// Priority returns the provider priority for model routing.
 func (p *OllamaProvider) Priority() int {
 	return p.priority
 }
 
+// ListModels returns the list of available models for this provider.
 func (p *OllamaProvider) ListModels() []string {
 	return p.models
 }
 
+// ChatCompletion performs a chat completion request with Ollama-specific parameters.
 func (p *OllamaProvider) ChatCompletion(
 	ctx context.Context, model string, messages []map[string]interface{},
 ) (interface{}, error) {
@@ -60,6 +66,7 @@ func (p *OllamaProvider) ChatCompletion(
 	return p.makeRequest(ctx, "/api/chat", payload)
 }
 
+// Completion performs a completion request using Ollama's generate endpoint.
 func (p *OllamaProvider) Completion(ctx context.Context, model, prompt string) (interface{}, error) {
 	payload := map[string]interface{}{
 		"model":  model,

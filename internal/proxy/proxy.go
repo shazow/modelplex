@@ -14,29 +14,35 @@ const (
 	defaultModelCreated = 1677610602
 )
 
+// OpenAIProxy provides OpenAI-compatible HTTP endpoints.
 type OpenAIProxy struct {
 	mux Multiplexer
 }
 
+// New creates a new OpenAI proxy with the given multiplexer.
 func New(mux Multiplexer) *OpenAIProxy {
 	return &OpenAIProxy{mux: mux}
 }
 
+// ChatCompletionRequest represents an OpenAI chat completion request.
 type ChatCompletionRequest struct {
 	Model    string                   `json:"model"`
 	Messages []map[string]interface{} `json:"messages"`
 }
 
+// CompletionRequest represents an OpenAI completion request.
 type CompletionRequest struct {
 	Model  string `json:"model"`
 	Prompt string `json:"prompt"`
 }
 
+// ModelsResponse represents an OpenAI models list response.
 type ModelsResponse struct {
 	Object string      `json:"object"`
 	Data   []ModelInfo `json:"data"`
 }
 
+// ModelInfo represents information about a single model.
 type ModelInfo struct {
 	ID      string `json:"id"`
 	Object  string `json:"object"`
@@ -44,6 +50,7 @@ type ModelInfo struct {
 	OwnedBy string `json:"owned_by"`
 }
 
+// HandleChatCompletions handles chat completion requests.
 func (p *OpenAIProxy) HandleChatCompletions(w http.ResponseWriter, r *http.Request) {
 	var req ChatCompletionRequest
 	if err := p.decodeJSONRequest(r, &req, w); err != nil {
@@ -55,6 +62,7 @@ func (p *OpenAIProxy) HandleChatCompletions(w http.ResponseWriter, r *http.Reque
 	p.handleResponse(w, result, err, "chat completion")
 }
 
+// HandleCompletions handles completion requests.
 func (p *OpenAIProxy) HandleCompletions(w http.ResponseWriter, r *http.Request) {
 	var req CompletionRequest
 	if err := p.decodeJSONRequest(r, &req, w); err != nil {
@@ -66,7 +74,8 @@ func (p *OpenAIProxy) HandleCompletions(w http.ResponseWriter, r *http.Request) 
 	p.handleResponse(w, result, err, "completion")
 }
 
-func (p *OpenAIProxy) HandleModels(w http.ResponseWriter, r *http.Request) {
+// HandleModels handles model listing requests.
+func (p *OpenAIProxy) HandleModels(w http.ResponseWriter, _ *http.Request) {
 	models := p.mux.ListModels()
 
 	data := make([]ModelInfo, len(models))

@@ -20,12 +20,14 @@ const (
 	mcpCallToolRequestID  = 99
 )
 
-type MCPClient struct {
-	servers map[string]*MCPServer
+// Client manages connections to multiple MCP servers.
+type Client struct {
+	servers map[string]*Server
 	mu      sync.RWMutex
 }
 
-type MCPServer struct {
+// Server represents a single MCP server connection.
+type Server struct {
 	name   string
 	cmd    *exec.Cmd
 	stdin  io.WriteCloser
@@ -35,34 +37,39 @@ type MCPServer struct {
 	mu     sync.RWMutex
 }
 
+// Tool represents an MCP tool with its schema.
 type Tool struct {
 	Name        string                 `json:"name"`
 	Description string                 `json:"description"`
 	InputSchema map[string]interface{} `json:"inputSchema"`
 }
 
-type MCPRequest struct {
+// Request represents a JSON-RPC request to an MCP server.
+type Request struct {
 	JSONRPC string      `json:"jsonrpc"`
 	ID      int         `json:"id"`
 	Method  string      `json:"method"`
 	Params  interface{} `json:"params,omitempty"`
 }
 
-type MCPResponse struct {
+// Response represents a JSON-RPC response from an MCP server.
+type Response struct {
 	JSONRPC string      `json:"jsonrpc"`
 	ID      int         `json:"id"`
 	Result  interface{} `json:"result,omitempty"`
-	Error   *MCPError   `json:"error,omitempty"`
+	Error   *Error      `json:"error,omitempty"`
 }
 
-type MCPError struct {
+// Error represents an error response from an MCP server.
+type Error struct {
 	Code    int    `json:"code"`
 	Message string `json:"message"`
 }
 
-func NewMCPClient(configs []config.MCPServer) *MCPClient {
-	client := &MCPClient{
-		servers: make(map[string]*MCPServer),
+// NewMCPClient creates a new MCP client with the given server configurations.
+func NewMCPClient(configs []config.MCPServer) *Client {
+	client := &Client{
+		servers: make(map[string]*Server),
 	}
 
 	for _, cfg := range configs {
@@ -74,7 +81,8 @@ func NewMCPClient(configs []config.MCPServer) *MCPClient {
 	return client
 }
 
-func (c *MCPClient) StartServer(cfg config.MCPServer) error {
+// StartServer starts a new MCP server process and establishes communication.
+func (c *Client) StartServer(cfg config.MCPServer) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -100,7 +108,7 @@ func (c *MCPClient) StartServer(cfg config.MCPServer) error {
 		return err
 	}
 
-	server := &MCPServer{
+	server := &Server{
 		name:   cfg.Name,
 		cmd:    cmd,
 		stdin:  stdin,
@@ -121,8 +129,8 @@ func (c *MCPClient) StartServer(cfg config.MCPServer) error {
 	return nil
 }
 
-func (s *MCPServer) initialize() error {
-	initReq := MCPRequest{
+func (s *Server) initialize() error {
+	initReq := Request{
 		JSONRPC: "2.0",
 		ID:      1,
 		Method:  "initialize",
@@ -142,7 +150,7 @@ func (s *MCPServer) initialize() error {
 		return err
 	}
 
-	listToolsReq := MCPRequest{
+	listToolsReq := Request{
 		JSONRPC: "2.0",
 		ID:      mcpListToolsRequestID,
 		Method:  "tools/list",
@@ -151,7 +159,7 @@ func (s *MCPServer) initialize() error {
 	return s.sendRequest(listToolsReq)
 }
 
-func (s *MCPServer) sendRequest(req MCPRequest) error {
+func (s *Server) sendRequest(req Request) error {
 	data, err := json.Marshal(req)
 	if err != nil {
 		return err
@@ -161,12 +169,12 @@ func (s *MCPServer) sendRequest(req MCPRequest) error {
 	return err
 }
 
-func (s *MCPServer) handleOutput() {
+func (s *Server) handleOutput() {
 	scanner := bufio.NewScanner(s.stdout)
 	for scanner.Scan() {
 		line := scanner.Text()
 
-		var resp MCPResponse
+		var resp Response
 		if err := json.Unmarshal([]byte(line), &resp); err != nil {
 			slog.Error("Failed to parse MCP response", "server", s.name, "error", err)
 			continue
@@ -176,14 +184,14 @@ func (s *MCPServer) handleOutput() {
 	}
 }
 
-func (s *MCPServer) handleErrors() {
+func (s *Server) handleErrors() {
 	scanner := bufio.NewScanner(s.stderr)
 	for scanner.Scan() {
 		slog.Warn("MCP server stderr", "server", s.name, "message", scanner.Text())
 	}
 }
 
-func (s *MCPServer) handleResponse(resp MCPResponse) {
+func (s *Server) handleResponse(resp Response) {
 	if resp.Error != nil {
 		slog.Error("MCP server error", "server", s.name, "message", resp.Error.Message)
 		return
@@ -213,7 +221,8 @@ func (s *MCPServer) handleResponse(resp MCPResponse) {
 	}
 }
 
-func (c *MCPClient) ListTools() []Tool {
+// ListTools returns all available tools from all connected MCP servers.
+func (c *Client) ListTools() []Tool {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
@@ -227,7 +236,8 @@ func (c *MCPClient) ListTools() []Tool {
 	return allTools
 }
 
-func (c *MCPClient) CallTool(ctx context.Context, name string, args map[string]interface{}) (interface{}, error) {
+// CallTool executes a tool on the appropriate MCP server with context cancellation support.
+func (c *Client) CallTool(ctx context.Context, name string, args map[string]interface{}) (interface{}, error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
@@ -250,8 +260,8 @@ func (c *MCPClient) CallTool(ctx context.Context, name string, args map[string]i
 	return nil, fmt.Errorf("tool not found: %s", name)
 }
 
-func (s *MCPServer) callTool(ctx context.Context, name string, args map[string]interface{}) (interface{}, error) {
-	req := MCPRequest{
+func (s *Server) callTool(ctx context.Context, name string, args map[string]interface{}) (interface{}, error) {
+	req := Request{
 		JSONRPC: "2.0",
 		ID:      mcpCallToolRequestID,
 		Method:  "tools/call",
@@ -287,7 +297,8 @@ func (s *MCPServer) callTool(ctx context.Context, name string, args map[string]i
 	}
 }
 
-func (c *MCPClient) Stop() {
+// Stop gracefully shuts down all MCP server connections.
+func (c *Client) Stop() {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 

@@ -6,6 +6,7 @@ import (
 	"time"
 )
 
+// RequestLog represents a structured log entry for API requests.
 type RequestLog struct {
 	Timestamp  time.Time              `json:"timestamp"`
 	RequestID  string                 `json:"request_id"`
@@ -19,14 +20,17 @@ type RequestLog struct {
 	Metadata   map[string]interface{} `json:"metadata,omitempty"`
 }
 
+// Logger provides structured logging functionality for monitoring.
 type Logger struct {
 	enabled bool
 }
 
+// NewLogger creates a new logger instance with the specified enabled state.
 func NewLogger(enabled bool) *Logger {
 	return &Logger{enabled: enabled}
 }
 
+// LogRequest logs a structured request log entry.
 func (l *Logger) LogRequest(reqLog *RequestLog) {
 	if !l.enabled {
 		return
@@ -47,6 +51,7 @@ func (l *Logger) LogRequest(reqLog *RequestLog) {
 		"metadata", reqLog.Metadata)
 }
 
+// LogError logs an error message with component context.
 func (l *Logger) LogError(component, message string, err error) {
 	if !l.enabled {
 		return
@@ -59,6 +64,7 @@ func (l *Logger) LogError(component, message string, err error) {
 		"error", err.Error())
 }
 
+// LogInfo logs an informational message with metadata.
 func (l *Logger) LogInfo(component, message string, metadata map[string]interface{}) {
 	if !l.enabled {
 		return

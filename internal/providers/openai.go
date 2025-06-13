@@ -17,6 +17,7 @@ import (
 	"github.com/modelplex/modelplex/internal/config"
 )
 
+// OpenAIProvider implements the Provider interface for OpenAI API.
 type OpenAIProvider struct {
 	name     string
 	baseURL  string
@@ -26,6 +27,7 @@ type OpenAIProvider struct {
 	client   *http.Client
 }
 
+// NewOpenAIProvider creates a new OpenAI provider instance.
 func NewOpenAIProvider(cfg *config.Provider) *OpenAIProvider {
 	apiKey := cfg.APIKey
 	if strings.HasPrefix(apiKey, "${") && strings.HasSuffix(apiKey, "}") {
@@ -43,18 +45,22 @@ func NewOpenAIProvider(cfg *config.Provider) *OpenAIProvider {
 	}
 }
 
+// Name returns the provider name.
 func (p *OpenAIProvider) Name() string {
 	return p.name
 }
 
+// Priority returns the provider priority for model routing.
 func (p *OpenAIProvider) Priority() int {
 	return p.priority
 }
 
+// ListModels returns the list of available models for this provider.
 func (p *OpenAIProvider) ListModels() []string {
 	return p.models
 }
 
+// ChatCompletion performs a chat completion request.
 func (p *OpenAIProvider) ChatCompletion(
 	ctx context.Context, model string, messages []map[string]interface{},
 ) (interface{}, error) {
@@ -66,6 +72,7 @@ func (p *OpenAIProvider) ChatCompletion(
 	return p.makeRequest(ctx, "/chat/completions", payload)
 }
 
+// Completion performs a completion request.
 func (p *OpenAIProvider) Completion(ctx context.Context, model, prompt string) (interface{}, error) {
 	payload := map[string]interface{}{
 		"model":  model,

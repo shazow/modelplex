@@ -25,6 +25,7 @@ const (
 	defaultMaxTokens = 4096
 )
 
+// AnthropicProvider implements the Provider interface for Anthropic Claude API.
 type AnthropicProvider struct {
 	name     string
 	baseURL  string
@@ -34,6 +35,7 @@ type AnthropicProvider struct {
 	client   *http.Client
 }
 
+// NewAnthropicProvider creates a new Anthropic provider instance.
 func NewAnthropicProvider(cfg *config.Provider) *AnthropicProvider {
 	apiKey := cfg.APIKey
 	if strings.HasPrefix(apiKey, "${") && strings.HasSuffix(apiKey, "}") {
@@ -51,18 +53,22 @@ func NewAnthropicProvider(cfg *config.Provider) *AnthropicProvider {
 	}
 }
 
+// Name returns the provider name.
 func (p *AnthropicProvider) Name() string {
 	return p.name
 }
 
+// Priority returns the provider priority for model routing.
 func (p *AnthropicProvider) Priority() int {
 	return p.priority
 }
 
+// ListModels returns the list of available models for this provider.
 func (p *AnthropicProvider) ListModels() []string {
 	return p.models
 }
 
+// ChatCompletion performs a chat completion request with Anthropic-specific formatting.
 func (p *AnthropicProvider) ChatCompletion(
 	ctx context.Context, model string, messages []map[string]interface{},
 ) (interface{}, error) {
@@ -96,6 +102,7 @@ func (p *AnthropicProvider) ChatCompletion(
 	return p.makeRequest(ctx, "/messages", payload)
 }
 
+// Completion performs a completion request by converting to chat format.
 func (p *AnthropicProvider) Completion(ctx context.Context, model, prompt string) (interface{}, error) {
 	messages := []map[string]interface{}{
 		{"role": "user", "content": prompt},

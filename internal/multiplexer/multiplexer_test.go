@@ -5,11 +5,12 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/modelplex/modelplex/internal/config"
-	"github.com/modelplex/modelplex/internal/providers"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+
+	"github.com/modelplex/modelplex/internal/config"
+	"github.com/modelplex/modelplex/internal/providers"
 )
 
 // MockProvider implements the Provider interface for testing

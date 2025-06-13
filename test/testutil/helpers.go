@@ -7,8 +7,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/modelplex/modelplex/internal/config"
 	"github.com/stretchr/testify/require"
+
+	"github.com/modelplex/modelplex/internal/config"
 )
 
 // CreateTestConfig creates a basic test configuration

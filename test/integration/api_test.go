@@ -11,10 +11,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/modelplex/modelplex/internal/config"
-	"github.com/modelplex/modelplex/internal/server"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/modelplex/modelplex/internal/config"
+	"github.com/modelplex/modelplex/internal/server"
 )
 
 func TestIntegration_FullAPIFlow(t *testing.T) {
@@ -202,7 +203,7 @@ func TestIntegration_ConfigValidation(t *testing.T) {
 func makeUnixRequest(t *testing.T, socketPath, method, path string, body *bytes.Reader) *http.Response {
 	client := &http.Client{
 		Transport: &http.Transport{
-			DialContext: func(_ context.Context, network, addr string) (net.Conn, error) {
+			DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
 				return net.Dial("unix", socketPath)
 			},
 		},

@@ -10,11 +10,13 @@ import (
 	"github.com/modelplex/modelplex/internal/providers"
 )
 
+// ModelMultiplexer routes requests to appropriate AI providers based on model names.
 type ModelMultiplexer struct {
 	providers []providers.Provider
 	modelMap  map[string]providers.Provider
 }
 
+// New creates a new model multiplexer with the given provider configurations.
 func New(configs []config.Provider) *ModelMultiplexer {
 	m := &ModelMultiplexer{
 		providers: make([]providers.Provider, 0),
@@ -42,6 +44,7 @@ func New(configs []config.Provider) *ModelMultiplexer {
 	return m
 }
 
+// GetProvider returns the provider responsible for the given model.
 func (m *ModelMultiplexer) GetProvider(model string) (providers.Provider, error) {
 	if provider, exists := m.modelMap[model]; exists {
 		return provider, nil
@@ -54,6 +57,7 @@ func (m *ModelMultiplexer) GetProvider(model string) (providers.Provider, error)
 	return nil, fmt.Errorf("no provider available for model: %s", model)
 }
 
+// ListModels returns all available models from all configured providers.
 func (m *ModelMultiplexer) ListModels() []string {
 	models := make([]string, 0, len(m.modelMap))
 	for model := range m.modelMap {
@@ -62,6 +66,7 @@ func (m *ModelMultiplexer) ListModels() []string {
 	return models
 }
 
+// ChatCompletion routes a chat completion request to the appropriate provider.
 func (m *ModelMultiplexer) ChatCompletion(
 	ctx context.Context, model string, messages []map[string]interface{},
 ) (interface{}, error) {
@@ -73,6 +78,7 @@ func (m *ModelMultiplexer) ChatCompletion(
 	return provider.ChatCompletion(ctx, model, messages)
 }
 
+// Completion routes a completion request to the appropriate provider.
 func (m *ModelMultiplexer) Completion(ctx context.Context, model, prompt string) (interface{}, error) {
 	provider, err := m.GetProvider(model)
 	if err != nil {

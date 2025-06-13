@@ -8,9 +8,10 @@ import (
 	"os"
 	"testing"
 
-	"github.com/modelplex/modelplex/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/modelplex/modelplex/internal/config"
 )
 
 func TestNewOpenAIProvider(t *testing.T) {
@@ -73,7 +74,8 @@ func TestNewOpenAIProvider(t *testing.T) {
 				}
 			}()
 
-			provider := NewOpenAIProvider(&tt.config)
+			config := tt.config // Create copy to avoid memory aliasing
+			provider := NewOpenAIProvider(&config)
 
 			assert.Equal(t, tt.expected.name, provider.Name())
 			assert.Equal(t, tt.expected.baseURL, provider.baseURL)

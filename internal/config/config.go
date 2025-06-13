@@ -7,12 +7,14 @@ import (
 	"github.com/pelletier/go-toml/v2"
 )
 
+// Config represents the main configuration structure for modelplex.
 type Config struct {
 	Providers []Provider `toml:"providers"`
 	MCP       MCPConfig  `toml:"mcp"`
 	Server    Server     `toml:"server"`
 }
 
+// Provider represents configuration for an AI provider.
 type Provider struct {
 	Name     string   `toml:"name"`
 	Type     string   `toml:"type"`
@@ -22,21 +24,25 @@ type Provider struct {
 	Priority int      `toml:"priority"`
 }
 
+// MCPConfig represents MCP (Model Context Protocol) configuration.
 type MCPConfig struct {
 	Servers []MCPServer `toml:"servers"`
 }
 
+// MCPServer represents configuration for a single MCP server.
 type MCPServer struct {
 	Name    string   `toml:"name"`
 	Command string   `toml:"command"`
 	Args    []string `toml:"args"`
 }
 
+// Server represents HTTP server configuration.
 type Server struct {
 	LogLevel       string `toml:"log_level"`
 	MaxRequestSize int64  `toml:"max_request_size"`
 }
 
+// Load reads and parses a TOML configuration file.
 func Load(path string) (*Config, error) {
 	data, err := os.ReadFile(path) // #nosec G304 -- config file path is provided by user via CLI flag
 	if err != nil {

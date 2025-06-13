@@ -9,6 +9,7 @@ import (
 	"syscall"
 
 	"github.com/jessevdk/go-flags"
+
 	"github.com/modelplex/modelplex/internal/config"
 	"github.com/modelplex/modelplex/internal/server"
 )

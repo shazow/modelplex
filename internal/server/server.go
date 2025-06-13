@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+
 	"github.com/modelplex/modelplex/internal/config"
 	"github.com/modelplex/modelplex/internal/multiplexer"
 	"github.com/modelplex/modelplex/internal/proxy"

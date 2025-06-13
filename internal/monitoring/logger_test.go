@@ -73,7 +73,8 @@ func TestLogger_LogRequest(t *testing.T) {
 			defer slog.SetDefault(oldLogger)
 
 			logger := NewLogger(tt.enabled)
-			logger.LogRequest(&tt.requestLog)
+			reqLog := tt.requestLog // Create copy to avoid memory aliasing
+			logger.LogRequest(&reqLog)
 
 			output := buf.String()
 			if tt.expectOutput {

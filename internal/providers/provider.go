@@ -6,6 +6,7 @@ import (
 	"github.com/modelplex/modelplex/internal/config"
 )
 
+// Provider defines the interface that all AI providers must implement.
 type Provider interface {
 	Name() string
 	Priority() int
@@ -14,6 +15,7 @@ type Provider interface {
 	ListModels() []string
 }
 
+// NewProvider creates a new provider instance based on the configuration type.
 func NewProvider(cfg *config.Provider) Provider {
 	switch cfg.Type {
 	case "openai":
