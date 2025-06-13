@@ -17,11 +17,19 @@ build-all:
 
 # Run the application with default config
 run:
-    go run ./cmd/modelplex --config config.toml --socket ./modelplex.socket
+    go run ./cmd/modelplex
 
 # Run with verbose logging
 run-verbose:
-    go run ./cmd/modelplex --config config.toml --socket ./modelplex.socket
+    go run ./cmd/modelplex --verbose
+
+# Show version information
+version:
+    go run ./cmd/modelplex --version
+
+# Show help
+help:
+    go run ./cmd/modelplex --help
 
 # Install dependencies
 deps:
