@@ -38,7 +38,7 @@ type Server struct {
 }
 
 func Load(path string) (*Config, error) {
-	data, err := os.ReadFile(path)
+	data, err := os.ReadFile(path) // #nosec G304 -- config file path is provided by user via CLI flag
 	if err != nil {
 		return nil, err
 	}

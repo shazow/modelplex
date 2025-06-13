@@ -72,7 +72,7 @@ func (c *MCPClient) StartServer(cfg config.MCPServer) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	cmd := exec.Command(cfg.Command, cfg.Args...)
+	cmd := exec.Command(cfg.Command, cfg.Args...) // #nosec G204 -- MCP command execution is intentional from trusted config
 
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
