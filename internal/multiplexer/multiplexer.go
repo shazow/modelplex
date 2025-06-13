@@ -24,7 +24,7 @@ func New(configs []config.Provider) *ModelMultiplexer {
 		provider := providers.NewProvider(cfg)
 		if provider != nil {
 			m.providers = append(m.providers, provider)
-			
+
 			for _, model := range cfg.Models {
 				if _, exists := m.modelMap[model]; !exists {
 					m.modelMap[model] = provider
@@ -44,11 +44,11 @@ func (m *ModelMultiplexer) GetProvider(model string) (providers.Provider, error)
 	if provider, exists := m.modelMap[model]; exists {
 		return provider, nil
 	}
-	
+
 	if len(m.providers) > 0 {
 		return m.providers[0], nil
 	}
-	
+
 	return nil, fmt.Errorf("no provider available for model: %s", model)
 }
 
@@ -65,7 +65,7 @@ func (m *ModelMultiplexer) ChatCompletion(ctx context.Context, model string, mes
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return provider.ChatCompletion(ctx, model, messages)
 }
 
@@ -74,6 +74,6 @@ func (m *ModelMultiplexer) Completion(ctx context.Context, model string, prompt 
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return provider.Completion(ctx, model, prompt)
 }

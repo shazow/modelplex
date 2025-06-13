@@ -26,7 +26,7 @@ type Server struct {
 func New(cfg *config.Config, socketPath string) *Server {
 	mux := multiplexer.New(cfg.Providers)
 	proxy := proxy.New(mux)
-	
+
 	return &Server{
 		config:     cfg,
 		socketPath: socketPath,
@@ -63,22 +63,28 @@ func (s *Server) Stop() {
 	if s.server != nil {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		s.server.Shutdown(ctx)
+		if err := s.server.Shutdown(ctx); err != nil {
+			log.Printf("Error shutting down server: %v", err)
+		}
 	}
 	if s.listener != nil {
-		s.listener.Close()
+		if err := s.listener.Close(); err != nil {
+			log.Printf("Error closing listener: %v", err)
+		}
 	}
-	os.RemoveAll(s.socketPath)
+	if err := os.RemoveAll(s.socketPath); err != nil {
+		log.Printf("Error removing socket path: %v", err)
+	}
 }
 
 func (s *Server) setupRoutes(router *mux.Router) {
 	v1 := router.PathPrefix("/v1").Subrouter()
-	
+
 	// OpenAI-compatible endpoints
 	v1.HandleFunc("/chat/completions", s.proxy.HandleChatCompletions).Methods("POST")
 	v1.HandleFunc("/completions", s.proxy.HandleCompletions).Methods("POST")
 	v1.HandleFunc("/models", s.proxy.HandleModels).Methods("GET")
-	
+
 	// Health check
 	router.HandleFunc("/health", s.handleHealth).Methods("GET")
 }
@@ -86,5 +92,7 @@ func (s *Server) setupRoutes(router *mux.Router) {
 func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(`{"status":"ok","service":"modelplex"}`))
+	if _, err := w.Write([]byte(`{"status":"ok","service":"modelplex"}`)); err != nil {
+		log.Printf("Error writing health response: %v", err)
+	}
 }

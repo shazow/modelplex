@@ -19,13 +19,13 @@ type MCPClient struct {
 }
 
 type MCPServer struct {
-	name    string
-	cmd     *exec.Cmd
-	stdin   io.WriteCloser
-	stdout  io.ReadCloser
-	stderr  io.ReadCloser
-	tools   []Tool
-	mu      sync.RWMutex
+	name   string
+	cmd    *exec.Cmd
+	stdin  io.WriteCloser
+	stdout io.ReadCloser
+	stderr io.ReadCloser
+	tools  []Tool
+	mu     sync.RWMutex
 }
 
 type Tool struct {
@@ -57,41 +57,41 @@ func NewMCPClient(configs []config.MCPServer) *MCPClient {
 	client := &MCPClient{
 		servers: make(map[string]*MCPServer),
 	}
-	
+
 	for _, cfg := range configs {
 		if err := client.StartServer(cfg); err != nil {
 			log.Printf("Failed to start MCP server %s: %v", cfg.Name, err)
 		}
 	}
-	
+
 	return client
 }
 
 func (c *MCPClient) StartServer(cfg config.MCPServer) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	
+
 	cmd := exec.Command(cfg.Command, cfg.Args...)
-	
+
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
 		return err
 	}
-	
+
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		return err
 	}
-	
+
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
 		return err
 	}
-	
+
 	if err := cmd.Start(); err != nil {
 		return err
 	}
-	
+
 	server := &MCPServer{
 		name:   cfg.Name,
 		cmd:    cmd,
@@ -100,16 +100,16 @@ func (c *MCPClient) StartServer(cfg config.MCPServer) error {
 		stderr: stderr,
 		tools:  make([]Tool, 0),
 	}
-	
+
 	c.servers[cfg.Name] = server
-	
+
 	go server.handleOutput()
 	go server.handleErrors()
-	
+
 	if err := server.initialize(); err != nil {
 		return err
 	}
-	
+
 	return nil
 }
 
@@ -129,17 +129,17 @@ func (s *MCPServer) initialize() error {
 			},
 		},
 	}
-	
+
 	if err := s.sendRequest(initReq); err != nil {
 		return err
 	}
-	
+
 	listToolsReq := MCPRequest{
 		JSONRPC: "2.0",
 		ID:      2,
 		Method:  "tools/list",
 	}
-	
+
 	return s.sendRequest(listToolsReq)
 }
 
@@ -148,7 +148,7 @@ func (s *MCPServer) sendRequest(req MCPRequest) error {
 	if err != nil {
 		return err
 	}
-	
+
 	_, err = s.stdin.Write(append(data, '\n'))
 	return err
 }
@@ -157,13 +157,13 @@ func (s *MCPServer) handleOutput() {
 	scanner := bufio.NewScanner(s.stdout)
 	for scanner.Scan() {
 		line := scanner.Text()
-		
+
 		var resp MCPResponse
 		if err := json.Unmarshal([]byte(line), &resp); err != nil {
 			log.Printf("Failed to parse MCP response from %s: %v", s.name, err)
 			continue
 		}
-		
+
 		s.handleResponse(resp)
 	}
 }
@@ -180,7 +180,7 @@ func (s *MCPServer) handleResponse(resp MCPResponse) {
 		log.Printf("MCP server %s error: %s", s.name, resp.Error.Message)
 		return
 	}
-	
+
 	if resp.ID == 2 {
 		if toolsData, ok := resp.Result.(map[string]interface{}); ok {
 			if tools, ok := toolsData["tools"].([]interface{}); ok {
@@ -208,21 +208,21 @@ func (s *MCPServer) handleResponse(resp MCPResponse) {
 func (c *MCPClient) ListTools() []Tool {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
-	
+
 	var allTools []Tool
 	for _, server := range c.servers {
 		server.mu.RLock()
 		allTools = append(allTools, server.tools...)
 		server.mu.RUnlock()
 	}
-	
+
 	return allTools
 }
 
 func (c *MCPClient) CallTool(ctx context.Context, name string, args map[string]interface{}) (interface{}, error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
-	
+
 	for _, server := range c.servers {
 		server.mu.RLock()
 		found := false
@@ -233,12 +233,12 @@ func (c *MCPClient) CallTool(ctx context.Context, name string, args map[string]i
 			}
 		}
 		server.mu.RUnlock()
-		
+
 		if found {
 			return server.callTool(ctx, name, args)
 		}
 	}
-	
+
 	return nil, fmt.Errorf("tool not found: %s", name)
 }
 
@@ -252,22 +252,28 @@ func (s *MCPServer) callTool(ctx context.Context, name string, args map[string]i
 			"arguments": args,
 		},
 	}
-	
+
 	if err := s.sendRequest(req); err != nil {
 		return nil, err
 	}
-	
+
 	return nil, nil
 }
 
 func (c *MCPClient) Stop() {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	
+
 	for _, server := range c.servers {
-		server.stdin.Close()
-		server.cmd.Process.Kill()
-		server.cmd.Wait()
+		if err := server.stdin.Close(); err != nil {
+			log.Printf("Error closing MCP server stdin: %v", err)
+		}
+		if err := server.cmd.Process.Kill(); err != nil {
+			log.Printf("Error killing MCP server process: %v", err)
+		}
+		if err := server.cmd.Wait(); err != nil {
+			log.Printf("Error waiting for MCP server process: %v", err)
+		}
 	}
 }
 

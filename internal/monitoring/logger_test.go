@@ -221,7 +221,7 @@ func TestLogger_LogInfo(t *testing.T) {
 					assert.Equal(t, tt.component, logData["component"])
 					assert.Equal(t, tt.message, logData["message"])
 					assert.NotNil(t, logData["timestamp"])
-					
+
 					if tt.metadata != nil {
 						metadata := logData["metadata"].(map[string]interface{})
 						for key, value := range tt.metadata {
@@ -242,7 +242,7 @@ func TestLogger_LogRequest_WithCompleteData(t *testing.T) {
 	defer log.SetOutput(nil)
 
 	logger := NewLogger(true)
-	
+
 	requestLog := RequestLog{
 		RequestID:  "req-full-test",
 		Model:      "gpt-4",
@@ -278,7 +278,7 @@ func TestLogger_LogRequest_WithCompleteData(t *testing.T) {
 	assert.Equal(t, requestLog.Duration, logData.Duration)
 	assert.Equal(t, requestLog.Success, logData.Success)
 	assert.NotZero(t, logData.Timestamp)
-	
+
 	// Verify metadata
 	require.NotNil(t, logData.Metadata)
 	assert.Equal(t, "user-123", logData.Metadata["user_id"])

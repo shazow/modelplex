@@ -40,47 +40,29 @@ type ModelInfo struct {
 
 func (p *OpenAIProxy) HandleChatCompletions(w http.ResponseWriter, r *http.Request) {
 	var req ChatCompletionRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, fmt.Sprintf("Invalid JSON: %v", err), http.StatusBadRequest)
+	if err := p.decodeJSONRequest(r, &req, w); err != nil {
 		return
 	}
 
 	model := p.normalizeModel(req.Model)
-	
 	result, err := p.mux.ChatCompletion(r.Context(), model, req.Messages)
-	if err != nil {
-		log.Printf("Chat completion error: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(result)
+	p.handleResponse(w, result, err, "chat completion")
 }
 
 func (p *OpenAIProxy) HandleCompletions(w http.ResponseWriter, r *http.Request) {
 	var req CompletionRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, fmt.Sprintf("Invalid JSON: %v", err), http.StatusBadRequest)
+	if err := p.decodeJSONRequest(r, &req, w); err != nil {
 		return
 	}
 
 	model := p.normalizeModel(req.Model)
-	
 	result, err := p.mux.Completion(r.Context(), model, req.Prompt)
-	if err != nil {
-		log.Printf("Completion error: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(result)
+	p.handleResponse(w, result, err, "completion")
 }
 
 func (p *OpenAIProxy) HandleModels(w http.ResponseWriter, r *http.Request) {
 	models := p.mux.ListModels()
-	
+
 	data := make([]ModelInfo, len(models))
 	for i, model := range models {
 		data[i] = ModelInfo{
@@ -96,8 +78,33 @@ func (p *OpenAIProxy) HandleModels(w http.ResponseWriter, r *http.Request) {
 		Data:   data,
 	}
 
+	p.writeJSONResponse(w, response, "models")
+}
+
+func (p *OpenAIProxy) decodeJSONRequest(r *http.Request, req interface{}, w http.ResponseWriter) error {
+	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
+		http.Error(w, fmt.Sprintf("Invalid JSON: %v", err), http.StatusBadRequest)
+		return err
+	}
+	return nil
+}
+
+func (p *OpenAIProxy) handleResponse(w http.ResponseWriter, result interface{}, err error, operation string) {
+	if err != nil {
+		log.Printf("%s error: %v", operation, err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	p.writeJSONResponse(w, result, operation)
+}
+
+func (p *OpenAIProxy) writeJSONResponse(w http.ResponseWriter, data interface{}, responseType string) {
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		log.Printf("Failed to encode %s response: %v", responseType, err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
 }
 
 func (p *OpenAIProxy) normalizeModel(model string) string {
@@ -110,13 +117,15 @@ func (p *OpenAIProxy) normalizeModel(model string) string {
 func writeError(w http.ResponseWriter, statusCode int, message string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
-	
+
 	errorResp := map[string]interface{}{
 		"error": map[string]interface{}{
 			"message": message,
 			"type":    "invalid_request_error",
 		},
 	}
-	
-	json.NewEncoder(w).Encode(errorResp)
+
+	if err := json.NewEncoder(w).Encode(errorResp); err != nil {
+		log.Printf("Failed to encode error response: %v", err)
+	}
 }

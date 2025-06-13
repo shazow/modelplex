@@ -52,7 +52,7 @@ func TestNew(t *testing.T) {
 		},
 		{
 			Name:     "anthropic",
-			Type:     "anthropic", 
+			Type:     "anthropic",
 			Models:   []string{"claude-3-sonnet"},
 			Priority: 2,
 		},
@@ -115,7 +115,7 @@ func TestModelMultiplexer_GetProvider(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			provider, err := mux.GetProvider(tt.model)
-			
+
 			if tt.expectedError {
 				assert.Error(t, err)
 				assert.Nil(t, provider)
@@ -143,8 +143,8 @@ func TestModelMultiplexer_GetProvider_NoProviders(t *testing.T) {
 func TestModelMultiplexer_ListModels(t *testing.T) {
 	mux := &ModelMultiplexer{
 		modelMap: map[string]providers.Provider{
-			"gpt-4":          nil,
-			"gpt-3.5-turbo":  nil,
+			"gpt-4":           nil,
+			"gpt-3.5-turbo":   nil,
 			"claude-3-sonnet": nil,
 		},
 	}
@@ -158,18 +158,18 @@ func TestModelMultiplexer_ListModels(t *testing.T) {
 
 func TestModelMultiplexer_ChatCompletion(t *testing.T) {
 	provider := &MockProvider{}
-	
+
 	messages := []map[string]interface{}{
 		{"role": "user", "content": "Hello"},
 	}
-	
+
 	expectedResponse := map[string]interface{}{
 		"id": "test-response",
 		"choices": []map[string]interface{}{
 			{"message": map[string]interface{}{"content": "Hello back!"}},
 		},
 	}
-	
+
 	provider.On("ChatCompletion", mock.Anything, "gpt-4", messages).Return(expectedResponse, nil)
 
 	mux := &ModelMultiplexer{
@@ -182,17 +182,17 @@ func TestModelMultiplexer_ChatCompletion(t *testing.T) {
 	result, err := mux.ChatCompletion(context.Background(), "gpt-4", messages)
 	require.NoError(t, err)
 	assert.Equal(t, expectedResponse, result)
-	
+
 	provider.AssertExpectations(t)
 }
 
 func TestModelMultiplexer_ChatCompletion_Error(t *testing.T) {
 	provider := &MockProvider{}
-	
+
 	messages := []map[string]interface{}{
 		{"role": "user", "content": "Hello"},
 	}
-	
+
 	expectedError := errors.New("provider error")
 	provider.On("ChatCompletion", mock.Anything, "gpt-4", messages).Return(nil, expectedError)
 
@@ -207,13 +207,13 @@ func TestModelMultiplexer_ChatCompletion_Error(t *testing.T) {
 	assert.Error(t, err)
 	assert.Nil(t, result)
 	assert.Equal(t, expectedError, err)
-	
+
 	provider.AssertExpectations(t)
 }
 
 func TestModelMultiplexer_Completion(t *testing.T) {
 	provider := &MockProvider{}
-	
+
 	prompt := "Complete this sentence"
 	expectedResponse := map[string]interface{}{
 		"id": "test-completion",
@@ -221,7 +221,7 @@ func TestModelMultiplexer_Completion(t *testing.T) {
 			{"text": " with something interesting."},
 		},
 	}
-	
+
 	provider.On("Completion", mock.Anything, "gpt-3.5-turbo-instruct", prompt).Return(expectedResponse, nil)
 
 	mux := &ModelMultiplexer{
@@ -234,7 +234,7 @@ func TestModelMultiplexer_Completion(t *testing.T) {
 	result, err := mux.Completion(context.Background(), "gpt-3.5-turbo-instruct", prompt)
 	require.NoError(t, err)
 	assert.Equal(t, expectedResponse, result)
-	
+
 	provider.AssertExpectations(t)
 }
 

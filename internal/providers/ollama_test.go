@@ -48,13 +48,13 @@ func TestOllamaProvider_ChatCompletion(t *testing.T) {
 				"role":    "assistant",
 				"content": "Hello! How can I help you today?",
 			},
-			"done": true,
-			"total_duration":      4935312500,
-			"load_duration":       534986708,
-			"prompt_eval_count":   26,
+			"done":                 true,
+			"total_duration":       4935312500,
+			"load_duration":        534986708,
+			"prompt_eval_count":    26,
 			"prompt_eval_duration": 107345000,
-			"eval_count":          298,
-			"eval_duration":       4289430500,
+			"eval_count":           298,
+			"eval_duration":        4289430500,
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -99,17 +99,17 @@ func TestOllamaProvider_Completion(t *testing.T) {
 		assert.Equal(t, false, req["stream"])
 
 		response := map[string]interface{}{
-			"model":      "codellama",
-			"created_at": "2023-08-04T19:22:45.499127Z",
-			"response":   "\n    if n <= 1:\n        return n\n    return fibonacci(n-1) + fibonacci(n-2)",
-			"done":       true,
-			"context":    []int{1, 2, 3},
-			"total_duration":      4935312500,
-			"load_duration":       534986708,
-			"prompt_eval_count":   26,
+			"model":                "codellama",
+			"created_at":           "2023-08-04T19:22:45.499127Z",
+			"response":             "\n    if n <= 1:\n        return n\n    return fibonacci(n-1) + fibonacci(n-2)",
+			"done":                 true,
+			"context":              []int{1, 2, 3},
+			"total_duration":       4935312500,
+			"load_duration":        534986708,
+			"prompt_eval_count":    26,
 			"prompt_eval_duration": 107345000,
-			"eval_count":          298,
-			"eval_duration":       4289430500,
+			"eval_count":           298,
+			"eval_duration":        4289430500,
 		}
 
 		w.Header().Set("Content-Type", "application/json")

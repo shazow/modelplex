@@ -13,12 +13,12 @@ type Config struct {
 }
 
 type Provider struct {
-	Name     string `toml:"name"`
-	Type     string `toml:"type"`
-	BaseURL  string `toml:"base_url"`
-	APIKey   string `toml:"api_key"`
+	Name     string   `toml:"name"`
+	Type     string   `toml:"type"`
+	BaseURL  string   `toml:"base_url"`
+	APIKey   string   `toml:"api_key"`
 	Models   []string `toml:"models"`
-	Priority int    `toml:"priority"`
+	Priority int      `toml:"priority"`
 }
 
 type MCPConfig struct {
@@ -26,14 +26,14 @@ type MCPConfig struct {
 }
 
 type MCPServer struct {
-	Name    string `toml:"name"`
-	Command string `toml:"command"`
+	Name    string   `toml:"name"`
+	Command string   `toml:"command"`
 	Args    []string `toml:"args"`
 }
 
 type Server struct {
-	LogLevel string `toml:"log_level"`
-	MaxRequestSize int64 `toml:"max_request_size"`
+	LogLevel       string `toml:"log_level"`
+	MaxRequestSize int64  `toml:"max_request_size"`
 }
 
 func Load(path string) (*Config, error) {

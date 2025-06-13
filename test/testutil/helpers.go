@@ -50,11 +50,11 @@ func CreateTestConfig() *config.Config {
 // CreateMockHTTPServer creates a mock HTTP server for testing providers
 func CreateMockHTTPServer(t *testing.T, responses map[string]func(w http.ResponseWriter, r *http.Request)) *httptest.Server {
 	mux := http.NewServeMux()
-	
+
 	for path, handler := range responses {
 		mux.HandleFunc(path, handler)
 	}
-	
+
 	return httptest.NewServer(mux)
 }
 
@@ -113,24 +113,24 @@ func CreateOllamaMockResponse() map[string]interface{} {
 			"role":    "assistant",
 			"content": "Hello! This is a test response from Llama.",
 		},
-		"done":                true,
-		"total_duration":      4935312500,
-		"load_duration":       534986708,
-		"prompt_eval_count":   10,
+		"done":                 true,
+		"total_duration":       4935312500,
+		"load_duration":        534986708,
+		"prompt_eval_count":    10,
 		"prompt_eval_duration": 107345000,
-		"eval_count":          9,
-		"eval_duration":       4289430500,
+		"eval_count":           9,
+		"eval_duration":        4289430500,
 	}
 }
 
 // AssertJSONResponse verifies that a response is valid JSON and returns the parsed data
 func AssertJSONResponse(t *testing.T, resp *http.Response) map[string]interface{} {
 	require.Equal(t, "application/json", resp.Header.Get("Content-Type"))
-	
+
 	var data map[string]interface{}
 	err := json.NewDecoder(resp.Body).Decode(&data)
 	require.NoError(t, err)
-	
+
 	return data
 }
 

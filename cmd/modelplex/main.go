@@ -63,7 +63,7 @@ func main() {
 	}
 
 	srv := server.New(cfg, opts.Socket)
-	
+
 	go func() {
 		if err := srv.Start(); err != nil {
 			log.Fatalf("Server failed: %v", err)

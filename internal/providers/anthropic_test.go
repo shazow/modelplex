@@ -46,10 +46,10 @@ func TestAnthropicProvider_ChatCompletion(t *testing.T) {
 		assert.NotEmpty(t, req["messages"])
 
 		response := map[string]interface{}{
-			"id":      "msg_123",
-			"type":    "message",
-			"role":    "assistant",
-			"model":   "claude-3-sonnet",
+			"id":    "msg_123",
+			"type":  "message",
+			"role":  "assistant",
+			"model": "claude-3-sonnet",
 			"content": []map[string]interface{}{
 				{
 					"type": "text",
@@ -97,7 +97,7 @@ func TestAnthropicProvider_ChatCompletion_WithSystem(t *testing.T) {
 
 		// Should have system message in separate field
 		assert.Equal(t, "You are a helpful assistant", req["system"])
-		
+
 		// Messages should not contain system message
 		messages := req["messages"].([]interface{})
 		assert.Len(t, messages, 1)

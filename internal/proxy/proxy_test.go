@@ -120,7 +120,7 @@ func TestOpenAIProxy_HandleChatCompletions(t *testing.T) {
 
 			// Verify
 			assert.Equal(t, tt.expectedStatus, w.Code)
-			
+
 			if tt.expectedStatus == http.StatusOK {
 				var response map[string]interface{}
 				err := json.NewDecoder(w.Body).Decode(&response)
@@ -244,16 +244,16 @@ func TestNormalizeModel(t *testing.T) {
 
 func TestWriteError(t *testing.T) {
 	w := httptest.NewRecorder()
-	
+
 	writeError(w, http.StatusBadRequest, "Test error message")
-	
+
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 	assert.Equal(t, "application/json", w.Header().Get("Content-Type"))
-	
+
 	var response map[string]interface{}
 	err := json.NewDecoder(w.Body).Decode(&response)
 	require.NoError(t, err)
-	
+
 	errorObj := response["error"].(map[string]interface{})
 	assert.Equal(t, "Test error message", errorObj["message"])
 	assert.Equal(t, "invalid_request_error", errorObj["type"])
