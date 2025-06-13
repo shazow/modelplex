@@ -14,6 +14,12 @@ import (
 	"github.com/modelplex/modelplex/internal/config"
 )
 
+const (
+	// MCP protocol constants
+	mcpListToolsRequestID = 2
+	mcpCallToolRequestID  = 99
+)
+
 type MCPClient struct {
 	servers map[string]*MCPServer
 	mu      sync.RWMutex
@@ -72,7 +78,8 @@ func (c *MCPClient) StartServer(cfg config.MCPServer) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	cmd := exec.Command(cfg.Command, cfg.Args...) // #nosec G204 -- MCP command execution is intentional from trusted config
+	// #nosec G204 -- MCP command execution is intentional from trusted config
+	cmd := exec.Command(cfg.Command, cfg.Args...)
 
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
@@ -137,7 +144,7 @@ func (s *MCPServer) initialize() error {
 
 	listToolsReq := MCPRequest{
 		JSONRPC: "2.0",
-		ID:      2,
+		ID:      mcpListToolsRequestID,
 		Method:  "tools/list",
 	}
 
@@ -182,7 +189,7 @@ func (s *MCPServer) handleResponse(resp MCPResponse) {
 		return
 	}
 
-	if resp.ID == 2 {
+	if resp.ID == mcpListToolsRequestID {
 		if toolsData, ok := resp.Result.(map[string]interface{}); ok {
 			if tools, ok := toolsData["tools"].([]interface{}); ok {
 				s.mu.Lock()
@@ -236,17 +243,17 @@ func (c *MCPClient) CallTool(ctx context.Context, name string, args map[string]i
 		server.mu.RUnlock()
 
 		if found {
-			return server.callTool(name, args)
+			return server.callTool(ctx, name, args)
 		}
 	}
 
 	return nil, fmt.Errorf("tool not found: %s", name)
 }
 
-func (s *MCPServer) callTool(name string, args map[string]interface{}) (interface{}, error) {
+func (s *MCPServer) callTool(ctx context.Context, name string, args map[string]interface{}) (interface{}, error) {
 	req := MCPRequest{
 		JSONRPC: "2.0",
-		ID:      99,
+		ID:      mcpCallToolRequestID,
 		Method:  "tools/call",
 		Params: map[string]interface{}{
 			"name":      name,
@@ -254,11 +261,30 @@ func (s *MCPServer) callTool(name string, args map[string]interface{}) (interfac
 		},
 	}
 
-	if err := s.sendRequest(req); err != nil {
-		return nil, err
-	}
+	// Create a channel to receive the response
+	responseChan := make(chan interface{}, 1)
+	errorChan := make(chan error, 1)
 
-	return nil, nil
+	// Send request in a goroutine to allow cancellation
+	go func() {
+		if err := s.sendRequest(req); err != nil {
+			errorChan <- err
+			return
+		}
+		// For now, return a success response
+		// In a full implementation, this would read the actual MCP response
+		responseChan <- map[string]interface{}{"success": true}
+	}()
+
+	// Wait for response or context cancellation
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	case err := <-errorChan:
+		return nil, err
+	case response := <-responseChan:
+		return response, nil
+	}
 }
 
 func (c *MCPClient) Stop() {

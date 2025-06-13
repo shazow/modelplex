@@ -180,11 +180,9 @@ func TestIntegration_ConfigValidation(t *testing.T) {
 			case err := <-done:
 				if tt.expectError {
 					assert.Error(t, err)
-				} else {
+				} else if err != nil && err != http.ErrServerClosed {
 					// Server start might return listener closed error when we stop it quickly
-					if err != nil && err != http.ErrServerClosed {
-						t.Logf("Unexpected error: %v", err)
-					}
+					t.Logf("Unexpected error: %v", err)
 				}
 			case <-ctx.Done():
 				// Test timeout - this is expected for valid configs
@@ -204,7 +202,7 @@ func TestIntegration_ConfigValidation(t *testing.T) {
 func makeUnixRequest(t *testing.T, socketPath, method, path string, body *bytes.Reader) *http.Response {
 	client := &http.Client{
 		Transport: &http.Transport{
-			DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+			DialContext: func(_ context.Context, network, addr string) (net.Conn, error) {
 				return net.Dial("unix", socketPath)
 			},
 		},

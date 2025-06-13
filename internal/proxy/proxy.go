@@ -9,6 +9,11 @@ import (
 	"strings"
 )
 
+const (
+	// Default model creation timestamp for OpenAI compatibility
+	defaultModelCreated = 1677610602
+)
+
 type OpenAIProxy struct {
 	mux Multiplexer
 }
@@ -69,7 +74,7 @@ func (p *OpenAIProxy) HandleModels(w http.ResponseWriter, r *http.Request) {
 		data[i] = ModelInfo{
 			ID:      model,
 			Object:  "model",
-			Created: 1677610602,
+			Created: defaultModelCreated,
 			OwnedBy: "modelplex",
 		}
 	}

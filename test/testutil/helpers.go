@@ -49,7 +49,7 @@ func CreateTestConfig() *config.Config {
 }
 
 // CreateMockHTTPServer creates a mock HTTP server for testing providers
-func CreateMockHTTPServer(t *testing.T, responses map[string]func(w http.ResponseWriter, r *http.Request)) *httptest.Server {
+func CreateMockHTTPServer(_ *testing.T, responses map[string]func(w http.ResponseWriter, r *http.Request)) *httptest.Server {
 	mux := http.NewServeMux()
 
 	for path, handler := range responses {

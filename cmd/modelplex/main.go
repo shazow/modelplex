@@ -1,3 +1,4 @@
+// Package main provides the modelplex CLI application.
 package main
 
 import (

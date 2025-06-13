@@ -153,7 +153,7 @@ func TestOpenAIProvider_ChatCompletion(t *testing.T) {
 
 func TestOpenAIProvider_ChatCompletion_Error(t *testing.T) {
 	// Create test server that returns error
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		if _, err := w.Write([]byte(`{"error": {"message": "Invalid API key", "type": "invalid_request_error"}}`)); err != nil {
 			t.Errorf("Failed to write error response: %v", err)

@@ -138,7 +138,7 @@ func TestOllamaProvider_Completion(t *testing.T) {
 }
 
 func TestOllamaProvider_Error(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		if _, err := w.Write([]byte(`{"error": "model not found"}`)); err != nil {
 			t.Errorf("Failed to write error response: %v", err)

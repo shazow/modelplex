@@ -20,6 +20,11 @@ import (
 	"github.com/modelplex/modelplex/internal/config"
 )
 
+const (
+	// Default max tokens for Anthropic API
+	defaultMaxTokens = 4096
+)
+
 type AnthropicProvider struct {
 	name     string
 	baseURL  string
@@ -81,7 +86,7 @@ func (p *AnthropicProvider) ChatCompletion(
 	payload := map[string]interface{}{
 		"model":      model,
 		"messages":   anthropicMessages,
-		"max_tokens": 4096,
+		"max_tokens": defaultMaxTokens,
 	}
 
 	if systemMessage != "" {

@@ -15,6 +15,14 @@ import (
 	"github.com/modelplex/modelplex/internal/proxy"
 )
 
+const (
+	// Server timeout constants
+	shutdownTimeout = 5 * time.Second
+	readTimeout     = 30 * time.Second
+	writeTimeout    = 30 * time.Second
+)
+
+// Server provides HTTP server functionality over Unix domain sockets.
 type Server struct {
 	config     *config.Config
 	socketPath string
@@ -24,6 +32,7 @@ type Server struct {
 	proxy      *proxy.OpenAIProxy
 }
 
+// New creates a new server instance with the given configuration and socket path.
 func New(cfg *config.Config, socketPath string) *Server {
 	mux := multiplexer.New(cfg.Providers)
 	proxy := proxy.New(mux)
@@ -36,6 +45,7 @@ func New(cfg *config.Config, socketPath string) *Server {
 	}
 }
 
+// Start starts the HTTP server listening on the Unix socket.
 func (s *Server) Start() error {
 	if err := os.RemoveAll(s.socketPath); err != nil {
 		return err
@@ -52,17 +62,18 @@ func (s *Server) Start() error {
 
 	s.server = &http.Server{
 		Handler:      router,
-		ReadTimeout:  30 * time.Second,
-		WriteTimeout: 30 * time.Second,
+		ReadTimeout:  readTimeout,
+		WriteTimeout: writeTimeout,
 	}
 
 	slog.Info("Modelplex server listening", "socket", s.socketPath)
 	return s.server.Serve(listener)
 }
 
+// Stop gracefully shuts down the server and cleans up the Unix socket.
 func (s *Server) Stop() {
 	if s.server != nil {
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
 		defer cancel()
 		if err := s.server.Shutdown(ctx); err != nil {
 			slog.Error("Error shutting down server", "error", err)
@@ -90,7 +101,7 @@ func (s *Server) setupRoutes(router *mux.Router) {
 	router.HandleFunc("/health", s.handleHealth).Methods("GET")
 }
 
-func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleHealth(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	if _, err := w.Write([]byte(`{"status":"ok","service":"modelplex"}`)); err != nil {
