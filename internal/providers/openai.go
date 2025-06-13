@@ -26,7 +26,7 @@ type OpenAIProvider struct {
 	client   *http.Client
 }
 
-func NewOpenAIProvider(cfg config.Provider) *OpenAIProvider {
+func NewOpenAIProvider(cfg *config.Provider) *OpenAIProvider {
 	apiKey := cfg.APIKey
 	if strings.HasPrefix(apiKey, "${") && strings.HasSuffix(apiKey, "}") {
 		envVar := strings.TrimSuffix(strings.TrimPrefix(apiKey, "${"), "}")
@@ -55,7 +55,9 @@ func (p *OpenAIProvider) ListModels() []string {
 	return p.models
 }
 
-func (p *OpenAIProvider) ChatCompletion(ctx context.Context, model string, messages []map[string]interface{}) (interface{}, error) {
+func (p *OpenAIProvider) ChatCompletion(
+	ctx context.Context, model string, messages []map[string]interface{},
+) (interface{}, error) {
 	payload := map[string]interface{}{
 		"model":    model,
 		"messages": messages,
@@ -64,7 +66,7 @@ func (p *OpenAIProvider) ChatCompletion(ctx context.Context, model string, messa
 	return p.makeRequest(ctx, "/chat/completions", payload)
 }
 
-func (p *OpenAIProvider) Completion(ctx context.Context, model string, prompt string) (interface{}, error) {
+func (p *OpenAIProvider) Completion(ctx context.Context, model, prompt string) (interface{}, error) {
 	payload := map[string]interface{}{
 		"model":  model,
 		"prompt": prompt,

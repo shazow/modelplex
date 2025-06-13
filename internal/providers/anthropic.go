@@ -29,7 +29,7 @@ type AnthropicProvider struct {
 	client   *http.Client
 }
 
-func NewAnthropicProvider(cfg config.Provider) *AnthropicProvider {
+func NewAnthropicProvider(cfg *config.Provider) *AnthropicProvider {
 	apiKey := cfg.APIKey
 	if strings.HasPrefix(apiKey, "${") && strings.HasSuffix(apiKey, "}") {
 		envVar := strings.TrimSuffix(strings.TrimPrefix(apiKey, "${"), "}")
@@ -58,7 +58,9 @@ func (p *AnthropicProvider) ListModels() []string {
 	return p.models
 }
 
-func (p *AnthropicProvider) ChatCompletion(ctx context.Context, model string, messages []map[string]interface{}) (interface{}, error) {
+func (p *AnthropicProvider) ChatCompletion(
+	ctx context.Context, model string, messages []map[string]interface{},
+) (interface{}, error) {
 	anthropicMessages := make([]map[string]interface{}, 0)
 	var systemMessage string
 
@@ -89,14 +91,16 @@ func (p *AnthropicProvider) ChatCompletion(ctx context.Context, model string, me
 	return p.makeRequest(ctx, "/messages", payload)
 }
 
-func (p *AnthropicProvider) Completion(ctx context.Context, model string, prompt string) (interface{}, error) {
+func (p *AnthropicProvider) Completion(ctx context.Context, model, prompt string) (interface{}, error) {
 	messages := []map[string]interface{}{
 		{"role": "user", "content": prompt},
 	}
 	return p.ChatCompletion(ctx, model, messages)
 }
 
-func (p *AnthropicProvider) makeRequest(ctx context.Context, endpoint string, payload interface{}) (interface{}, error) {
+func (p *AnthropicProvider) makeRequest(
+	ctx context.Context, endpoint string, payload interface{},
+) (interface{}, error) {
 	jsonData, err := json.Marshal(payload)
 	if err != nil {
 		return nil, err

@@ -21,7 +21,7 @@ func TestNewAnthropicProvider(t *testing.T) {
 		Priority: 1,
 	}
 
-	provider := NewAnthropicProvider(cfg)
+	provider := NewAnthropicProvider(&cfg)
 
 	assert.Equal(t, "anthropic", provider.Name())
 	assert.Equal(t, "https://api.anthropic.com/v1", provider.baseURL)
@@ -70,7 +70,7 @@ func TestAnthropicProvider_ChatCompletion(t *testing.T) {
 	}))
 	defer server.Close()
 
-	provider := NewAnthropicProvider(config.Provider{
+	provider := NewAnthropicProvider(&config.Provider{
 		Name:    "test",
 		BaseURL: server.URL,
 		APIKey:  "test-key",
@@ -122,7 +122,7 @@ func TestAnthropicProvider_ChatCompletion_WithSystem(t *testing.T) {
 	}))
 	defer server.Close()
 
-	provider := NewAnthropicProvider(config.Provider{
+	provider := NewAnthropicProvider(&config.Provider{
 		Name:    "test",
 		BaseURL: server.URL,
 		APIKey:  "test-key",
@@ -168,7 +168,7 @@ func TestAnthropicProvider_Completion(t *testing.T) {
 	}))
 	defer server.Close()
 
-	provider := NewAnthropicProvider(config.Provider{
+	provider := NewAnthropicProvider(&config.Provider{
 		Name:    "test",
 		BaseURL: server.URL,
 		APIKey:  "test-key",

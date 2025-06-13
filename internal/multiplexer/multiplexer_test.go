@@ -32,7 +32,7 @@ func (m *MockProvider) ChatCompletion(ctx context.Context, model string, message
 	return args.Get(0), args.Error(1)
 }
 
-func (m *MockProvider) Completion(ctx context.Context, model string, prompt string) (interface{}, error) {
+func (m *MockProvider) Completion(ctx context.Context, model, prompt string) (interface{}, error) {
 	args := m.Called(ctx, model, prompt)
 	return args.Get(0), args.Error(1)
 }

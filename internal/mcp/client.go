@@ -79,14 +79,14 @@ func (c *MCPClient) StartServer(cfg config.MCPServer) error {
 		return err
 	}
 
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		return err
+	stdout, err2 := cmd.StdoutPipe()
+	if err2 != nil {
+		return err2
 	}
 
-	stderr, err := cmd.StderrPipe()
-	if err != nil {
-		return err
+	stderr, err3 := cmd.StderrPipe()
+	if err3 != nil {
+		return err3
 	}
 
 	if err := cmd.Start(); err != nil {
@@ -236,14 +236,14 @@ func (c *MCPClient) CallTool(ctx context.Context, name string, args map[string]i
 		server.mu.RUnlock()
 
 		if found {
-			return server.callTool(ctx, name, args)
+			return server.callTool(name, args)
 		}
 	}
 
 	return nil, fmt.Errorf("tool not found: %s", name)
 }
 
-func (s *MCPServer) callTool(ctx context.Context, name string, args map[string]interface{}) (interface{}, error) {
+func (s *MCPServer) callTool(name string, args map[string]interface{}) (interface{}, error) {
 	req := MCPRequest{
 		JSONRPC: "2.0",
 		ID:      99,

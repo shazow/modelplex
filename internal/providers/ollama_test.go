@@ -20,7 +20,7 @@ func TestNewOllamaProvider(t *testing.T) {
 		Priority: 3,
 	}
 
-	provider := NewOllamaProvider(cfg)
+	provider := NewOllamaProvider(&cfg)
 
 	assert.Equal(t, "local", provider.Name())
 	assert.Equal(t, "http://localhost:11434", provider.baseURL)
@@ -64,7 +64,7 @@ func TestOllamaProvider_ChatCompletion(t *testing.T) {
 	}))
 	defer server.Close()
 
-	provider := NewOllamaProvider(config.Provider{
+	provider := NewOllamaProvider(&config.Provider{
 		Name:    "test",
 		BaseURL: server.URL,
 		Models:  []string{"llama2"},
@@ -121,7 +121,7 @@ func TestOllamaProvider_Completion(t *testing.T) {
 	}))
 	defer server.Close()
 
-	provider := NewOllamaProvider(config.Provider{
+	provider := NewOllamaProvider(&config.Provider{
 		Name:    "test",
 		BaseURL: server.URL,
 		Models:  []string{"codellama"},
@@ -146,7 +146,7 @@ func TestOllamaProvider_Error(t *testing.T) {
 	}))
 	defer server.Close()
 
-	provider := NewOllamaProvider(config.Provider{
+	provider := NewOllamaProvider(&config.Provider{
 		Name:    "test",
 		BaseURL: server.URL,
 		Models:  []string{"nonexistent"},

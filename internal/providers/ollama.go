@@ -26,7 +26,7 @@ type OllamaProvider struct {
 	client   *http.Client
 }
 
-func NewOllamaProvider(cfg config.Provider) *OllamaProvider {
+func NewOllamaProvider(cfg *config.Provider) *OllamaProvider {
 	return &OllamaProvider{
 		name:     cfg.Name,
 		baseURL:  cfg.BaseURL,
@@ -48,7 +48,9 @@ func (p *OllamaProvider) ListModels() []string {
 	return p.models
 }
 
-func (p *OllamaProvider) ChatCompletion(ctx context.Context, model string, messages []map[string]interface{}) (interface{}, error) {
+func (p *OllamaProvider) ChatCompletion(
+	ctx context.Context, model string, messages []map[string]interface{},
+) (interface{}, error) {
 	payload := map[string]interface{}{
 		"model":    model,
 		"messages": messages,
@@ -58,7 +60,7 @@ func (p *OllamaProvider) ChatCompletion(ctx context.Context, model string, messa
 	return p.makeRequest(ctx, "/api/chat", payload)
 }
 
-func (p *OllamaProvider) Completion(ctx context.Context, model string, prompt string) (interface{}, error) {
+func (p *OllamaProvider) Completion(ctx context.Context, model, prompt string) (interface{}, error) {
 	payload := map[string]interface{}{
 		"model":  model,
 		"prompt": prompt,

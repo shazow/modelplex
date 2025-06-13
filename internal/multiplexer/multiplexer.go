@@ -22,7 +22,7 @@ func New(configs []config.Provider) *ModelMultiplexer {
 	}
 
 	for _, cfg := range configs {
-		provider := providers.NewProvider(cfg)
+		provider := providers.NewProvider(&cfg)
 		if provider != nil {
 			m.providers = append(m.providers, provider)
 
@@ -61,7 +61,9 @@ func (m *ModelMultiplexer) ListModels() []string {
 	return models
 }
 
-func (m *ModelMultiplexer) ChatCompletion(ctx context.Context, model string, messages []map[string]interface{}) (interface{}, error) {
+func (m *ModelMultiplexer) ChatCompletion(
+	ctx context.Context, model string, messages []map[string]interface{},
+) (interface{}, error) {
 	provider, err := m.GetProvider(model)
 	if err != nil {
 		return nil, err
@@ -70,7 +72,7 @@ func (m *ModelMultiplexer) ChatCompletion(ctx context.Context, model string, mes
 	return provider.ChatCompletion(ctx, model, messages)
 }
 
-func (m *ModelMultiplexer) Completion(ctx context.Context, model string, prompt string) (interface{}, error) {
+func (m *ModelMultiplexer) Completion(ctx context.Context, model, prompt string) (interface{}, error) {
 	provider, err := m.GetProvider(model)
 	if err != nil {
 		return nil, err

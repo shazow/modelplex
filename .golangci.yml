@@ -5,9 +5,32 @@ run:
 
 linters-settings:
   govet:
-    check-shadowing: true
-  golint:
+    shadow: true
+  revive:
     min-confidence: 0
+  depguard:
+    rules:
+      main:
+        files:
+          - "!**/*_test.go"
+          - "!**/test/**"
+        allow:
+          - $gostd
+          - github.com/modelplex/modelplex
+          - github.com/jessevdk/go-flags
+          - github.com/gorilla/mux
+          - github.com/pelletier/go-toml/v2
+      tests:
+        files:
+          - "**/*_test.go"
+          - "**/test/**"
+        allow:
+          - $gostd
+          - github.com/modelplex/modelplex
+          - github.com/stretchr/testify
+          - github.com/jessevdk/go-flags
+          - github.com/gorilla/mux
+          - github.com/pelletier/go-toml/v2
   gocyclo:
     min-complexity: 15
   maligned:
@@ -43,12 +66,12 @@ linters:
   disable-all: true
   enable:
     - bodyclose
-    - deadcode
+    - unused
     - depguard
     - dogsled
     - dupl
     - errcheck
-    - exportloopref
+    - copyloopvar
     - funlen
     - gochecknoinits
     - goconst
@@ -56,41 +79,36 @@ linters:
     - gocyclo
     - gofmt
     - goimports
-    - golint
-    - gomnd
+    - revive
+    - mnd
     - goprintffuncname
     - gosec
     - gosimple
     - govet
     - ineffassign
-    - interfacer
     - lll
     - misspell
     - nakedret
     - noctx
     - nolintlint
     - rowserrcheck
-    - scopelint
     - staticcheck
-    - structcheck
     - stylecheck
     - typecheck
     - unconvert
     - unparam
-    - unused
-    - varcheck
     - whitespace
 
 issues:
   exclude-rules:
     - path: _test\.go
       linters:
-        - gomnd
+        - mnd
         - funlen
         - lll
     - path: test/
       linters:
-        - gomnd
+        - mnd
         - funlen
         - lll
     - linters:

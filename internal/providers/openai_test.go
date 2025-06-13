@@ -73,7 +73,7 @@ func TestNewOpenAIProvider(t *testing.T) {
 				}
 			}()
 
-			provider := NewOpenAIProvider(tt.config)
+			provider := NewOpenAIProvider(&tt.config)
 
 			assert.Equal(t, tt.expected.name, provider.Name())
 			assert.Equal(t, tt.expected.baseURL, provider.baseURL)
@@ -129,7 +129,7 @@ func TestOpenAIProvider_ChatCompletion(t *testing.T) {
 	}))
 	defer server.Close()
 
-	provider := NewOpenAIProvider(config.Provider{
+	provider := NewOpenAIProvider(&config.Provider{
 		Name:    "test",
 		BaseURL: server.URL,
 		APIKey:  "test-key",
@@ -161,7 +161,7 @@ func TestOpenAIProvider_ChatCompletion_Error(t *testing.T) {
 	}))
 	defer server.Close()
 
-	provider := NewOpenAIProvider(config.Provider{
+	provider := NewOpenAIProvider(&config.Provider{
 		Name:    "test",
 		BaseURL: server.URL,
 		APIKey:  "invalid-key",
@@ -211,7 +211,7 @@ func TestOpenAIProvider_Completion(t *testing.T) {
 	}))
 	defer server.Close()
 
-	provider := NewOpenAIProvider(config.Provider{
+	provider := NewOpenAIProvider(&config.Provider{
 		Name:    "test",
 		BaseURL: server.URL,
 		APIKey:  "test-key",

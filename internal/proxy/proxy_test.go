@@ -24,7 +24,7 @@ func (m *MockMultiplexer) ChatCompletion(ctx context.Context, model string, mess
 	return args.Get(0), args.Error(1)
 }
 
-func (m *MockMultiplexer) Completion(ctx context.Context, model string, prompt string) (interface{}, error) {
+func (m *MockMultiplexer) Completion(ctx context.Context, model, prompt string) (interface{}, error) {
 	args := m.Called(ctx, model, prompt)
 	return args.Get(0), args.Error(1)
 }

@@ -73,7 +73,7 @@ func TestLogger_LogRequest(t *testing.T) {
 			defer slog.SetDefault(oldLogger)
 
 			logger := NewLogger(tt.enabled)
-			logger.LogRequest(tt.requestLog)
+			logger.LogRequest(&tt.requestLog)
 
 			output := buf.String()
 			if tt.expectOutput {
@@ -224,7 +224,7 @@ func TestLogger_LogRequest_WithCompleteData(t *testing.T) {
 		},
 	}
 
-	logger.LogRequest(requestLog)
+	logger.LogRequest(&requestLog)
 
 	output := buf.String()
 	assert.Contains(t, output, "Request logged")

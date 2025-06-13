@@ -27,7 +27,7 @@ func NewLogger(enabled bool) *Logger {
 	return &Logger{enabled: enabled}
 }
 
-func (l *Logger) LogRequest(reqLog RequestLog) {
+func (l *Logger) LogRequest(reqLog *RequestLog) {
 	if !l.enabled {
 		return
 	}
