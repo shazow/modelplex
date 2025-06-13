@@ -1,0 +1,48 @@
+# Git files
+.git
+.gitignore
+
+# Documentation
+README.md
+LICENSE
+*.md
+
+# Build artifacts
+bin/
+dist/
+
+# Test files
+*_test.go
+test/
+coverage.out
+
+# Development files
+.vscode/
+.claude/
+.idea/
+*.swp
+*.swo
+*~
+
+# CI/CD files
+.github/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.log
+
+# Local configuration
+*.local.toml
+.env
+.env.local
+
+# Examples (not needed in container)
+examples/
+
+# Build tools
+justfile
+Makefile
