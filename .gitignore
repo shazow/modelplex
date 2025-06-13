@@ -39,4 +39,4 @@ Thumbs.db
 *.log
 
 # Docker
-.dockerignore
+# Note: .dockerignore should be committed to optimize builds

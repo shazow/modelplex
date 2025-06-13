@@ -170,7 +170,9 @@ jobs:
         tags: modelplex:latest
         cache-from: type=gha
         cache-to: type=gha,mode=max
+        platforms: linux/amd64
 
     - name: Test Docker image
       run: |
+        docker run --rm modelplex:latest --version
         docker run --rm modelplex:latest --help
