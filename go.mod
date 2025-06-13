@@ -4,7 +4,7 @@ go 1.24
 
 require (
 	github.com/gorilla/mux v1.8.1
-	github.com/jessevdk/go-flags v1.5.0
+	github.com/jessevdk/go-flags v1.6.1
 	github.com/pelletier/go-toml/v2 v2.2.4
 	github.com/stretchr/testify v1.10.0
 )
