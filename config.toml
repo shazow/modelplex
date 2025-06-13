@@ -1,0 +1,42 @@
+# Modelplex Configuration
+
+[server]
+log_level = "info"
+max_request_size = 10485760  # 10MB
+
+# AI Model Providers
+[[providers]]
+name = "openai"
+type = "openai"
+base_url = "https://api.openai.com/v1"
+api_key = "${OPENAI_API_KEY}"
+models = ["gpt-4", "gpt-3.5-turbo"]
+priority = 1
+
+[[providers]]
+name = "anthropic" 
+type = "anthropic"
+base_url = "https://api.anthropic.com/v1"
+api_key = "${ANTHROPIC_API_KEY}"
+models = ["claude-3-sonnet", "claude-3-haiku"]
+priority = 2
+
+[[providers]]
+name = "local"
+type = "ollama"
+base_url = "http://localhost:11434"
+api_key = ""
+models = ["llama2", "codellama"]
+priority = 3
+
+# MCP Tool Servers
+[mcp]
+[[mcp.servers]]
+name = "filesystem"
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"]
+
+[[mcp.servers]]  
+name = "brave-search"
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-brave-search"]
