@@ -68,6 +68,7 @@ func TestIntegration_FullAPIFlow(t *testing.T) {
 	// Test health endpoint
 	t.Run("Health Check", func(t *testing.T) {
 		response := makeUnixRequest(t, socketPath, "GET", "/health", nil)
+	defer response.Body.Close()
 		assert.Equal(t, 200, response.StatusCode)
 
 		var healthResponse map[string]interface{}
@@ -80,6 +81,7 @@ func TestIntegration_FullAPIFlow(t *testing.T) {
 	// Test models endpoint
 	t.Run("List Models", func(t *testing.T) {
 		response := makeUnixRequest(t, socketPath, "GET", "/v1/models", nil)
+	defer response.Body.Close()
 		assert.Equal(t, 200, response.StatusCode)
 
 		var modelsResponse map[string]interface{}
@@ -213,7 +215,7 @@ func makeUnixRequest(t *testing.T, socketPath, method, path string, body *bytes.
 	if body != nil {
 		req, err = http.NewRequest(method, "http://unix"+path, body)
 	} else {
-		req, err = http.NewRequest(method, "http://unix"+path, nil)
+		req, err = http.NewRequest(method, "http://unix"+path, http.NoBody)
 	}
 	require.NoError(t, err)
 

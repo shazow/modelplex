@@ -1,3 +1,7 @@
+// Package providers implements AI provider abstractions.
+// OpenAIProvider implements the standard OpenAI API format.
+// This serves as the reference implementation that other providers adapt to.
+// Uses standard OpenAI endpoints, headers, and request/response formats.
 package providers
 
 import (

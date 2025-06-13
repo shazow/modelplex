@@ -1,8 +1,8 @@
+// Package monitoring provides structured logging and metrics collection.
 package monitoring
 
 import (
-	"encoding/json"
-	"log"
+	"log/slog"
 	"time"
 )
 
@@ -34,13 +34,17 @@ func (l *Logger) LogRequest(reqLog RequestLog) {
 
 	reqLog.Timestamp = time.Now()
 
-	data, err := json.Marshal(reqLog)
-	if err != nil {
-		log.Printf("Failed to marshal request log: %v", err)
-		return
-	}
-
-	log.Printf("REQUEST_LOG: %s", string(data))
+	slog.Info("Request logged",
+		"timestamp", reqLog.Timestamp,
+		"request_id", reqLog.RequestID,
+		"model", reqLog.Model,
+		"provider", reqLog.Provider,
+		"method", reqLog.Method,
+		"tokens_used", reqLog.TokensUsed,
+		"duration", reqLog.Duration,
+		"success", reqLog.Success,
+		"error", reqLog.Error,
+		"metadata", reqLog.Metadata)
 }
 
 func (l *Logger) LogError(component, message string, err error) {
@@ -48,20 +52,11 @@ func (l *Logger) LogError(component, message string, err error) {
 		return
 	}
 
-	errorLog := map[string]interface{}{
-		"timestamp": time.Now(),
-		"component": component,
-		"message":   message,
-		"error":     err.Error(),
-	}
-
-	data, jsonErr := json.Marshal(errorLog)
-	if jsonErr != nil {
-		log.Printf("ERROR in %s: %s - %v", component, message, err)
-		return
-	}
-
-	log.Printf("ERROR_LOG: %s", string(data))
+	slog.Error("Component error",
+		"timestamp", time.Now(),
+		"component", component,
+		"message", message,
+		"error", err.Error())
 }
 
 func (l *Logger) LogInfo(component, message string, metadata map[string]interface{}) {
@@ -69,18 +64,9 @@ func (l *Logger) LogInfo(component, message string, metadata map[string]interfac
 		return
 	}
 
-	infoLog := map[string]interface{}{
-		"timestamp": time.Now(),
-		"component": component,
-		"message":   message,
-		"metadata":  metadata,
-	}
-
-	data, err := json.Marshal(infoLog)
-	if err != nil {
-		log.Printf("INFO %s: %s", component, message)
-		return
-	}
-
-	log.Printf("INFO_LOG: %s", string(data))
+	slog.Info("Component info",
+		"timestamp", time.Now(),
+		"component", component,
+		"message", message,
+		"metadata", metadata)
 }

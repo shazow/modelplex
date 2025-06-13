@@ -58,7 +58,9 @@ func TestOllamaProvider_ChatCompletion(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		if err := json.NewEncoder(w).Encode(response); err != nil {
+			t.Errorf("Failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -113,7 +115,9 @@ func TestOllamaProvider_Completion(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		if err := json.NewEncoder(w).Encode(response); err != nil {
+			t.Errorf("Failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -136,7 +140,9 @@ func TestOllamaProvider_Completion(t *testing.T) {
 func TestOllamaProvider_Error(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte(`{"error": "model not found"}`))
+		if _, err := w.Write([]byte(`{"error": "model not found"}`)); err != nil {
+			t.Errorf("Failed to write error response: %v", err)
+		}
 	}))
 	defer server.Close()
 

@@ -1,3 +1,4 @@
+// Package config provides TOML configuration loading and parsing.
 package config
 
 import (

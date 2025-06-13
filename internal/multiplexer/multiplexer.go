@@ -1,3 +1,4 @@
+// Package multiplexer provides AI model routing and provider selection.
 package multiplexer
 
 import (

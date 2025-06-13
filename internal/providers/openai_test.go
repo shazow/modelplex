@@ -63,9 +63,15 @@ func TestNewOpenAIProvider(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Set environment variables
 			for key, value := range tt.envVars {
-				os.Setenv(key, value)
-				defer os.Unsetenv(key)
+				if err := os.Setenv(key, value); err != nil {
+					t.Errorf("Failed to set env var: %v", err)
+				}
 			}
+			defer func() {
+				for key := range tt.envVars {
+					os.Unsetenv(key)
+				}
+			}()
 
 			provider := NewOpenAIProvider(tt.config)
 
@@ -117,7 +123,9 @@ func TestOpenAIProvider_ChatCompletion(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		if err := json.NewEncoder(w).Encode(response); err != nil {
+			t.Errorf("Failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -147,7 +155,9 @@ func TestOpenAIProvider_ChatCompletion_Error(t *testing.T) {
 	// Create test server that returns error
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte(`{"error": {"message": "Invalid API key", "type": "invalid_request_error"}}`))
+		if _, err := w.Write([]byte(`{"error": {"message": "Invalid API key", "type": "invalid_request_error"}}`)); err != nil {
+			t.Errorf("Failed to write error response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -195,7 +205,9 @@ func TestOpenAIProvider_Completion(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		if err := json.NewEncoder(w).Encode(response); err != nil {
+			t.Errorf("Failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 

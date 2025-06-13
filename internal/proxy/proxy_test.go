@@ -196,7 +196,7 @@ func TestOpenAIProxy_HandleModels(t *testing.T) {
 	mockModels := []string{"gpt-4", "gpt-3.5-turbo", "claude-3-sonnet"}
 	mockMux.On("ListModels").Return(mockModels)
 
-	req := httptest.NewRequest("GET", "/v1/models", nil)
+	req := httptest.NewRequest("GET", "/v1/models", http.NoBody)
 	w := httptest.NewRecorder()
 
 	proxy.HandleModels(w, req)

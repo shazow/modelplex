@@ -1,3 +1,4 @@
+// Package mcp provides Model Context Protocol (MCP) client implementation.
 package mcp
 
 import (
@@ -6,7 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
+	"log/slog"
 	"os/exec"
 	"sync"
 
@@ -60,7 +61,7 @@ func NewMCPClient(configs []config.MCPServer) *MCPClient {
 
 	for _, cfg := range configs {
 		if err := client.StartServer(cfg); err != nil {
-			log.Printf("Failed to start MCP server %s: %v", cfg.Name, err)
+			slog.Error("Failed to start MCP server", "server", cfg.Name, "error", err)
 		}
 	}
 
@@ -160,7 +161,7 @@ func (s *MCPServer) handleOutput() {
 
 		var resp MCPResponse
 		if err := json.Unmarshal([]byte(line), &resp); err != nil {
-			log.Printf("Failed to parse MCP response from %s: %v", s.name, err)
+			slog.Error("Failed to parse MCP response", "server", s.name, "error", err)
 			continue
 		}
 
@@ -171,13 +172,13 @@ func (s *MCPServer) handleOutput() {
 func (s *MCPServer) handleErrors() {
 	scanner := bufio.NewScanner(s.stderr)
 	for scanner.Scan() {
-		log.Printf("MCP server %s stderr: %s", s.name, scanner.Text())
+		slog.Warn("MCP server stderr", "server", s.name, "message", scanner.Text())
 	}
 }
 
 func (s *MCPServer) handleResponse(resp MCPResponse) {
 	if resp.Error != nil {
-		log.Printf("MCP server %s error: %s", s.name, resp.Error.Message)
+		slog.Error("MCP server error", "server", s.name, "message", resp.Error.Message)
 		return
 	}
 
@@ -199,7 +200,7 @@ func (s *MCPServer) handleResponse(resp MCPResponse) {
 					}
 				}
 				s.mu.Unlock()
-				log.Printf("MCP server %s loaded %d tools", s.name, len(s.tools))
+				slog.Info("MCP server loaded tools", "server", s.name, "count", len(s.tools))
 			}
 		}
 	}
@@ -266,13 +267,13 @@ func (c *MCPClient) Stop() {
 
 	for _, server := range c.servers {
 		if err := server.stdin.Close(); err != nil {
-			log.Printf("Error closing MCP server stdin: %v", err)
+			slog.Error("Error closing MCP server stdin", "error", err)
 		}
 		if err := server.cmd.Process.Kill(); err != nil {
-			log.Printf("Error killing MCP server process: %v", err)
+			slog.Error("Error killing MCP server process", "error", err)
 		}
 		if err := server.cmd.Wait(); err != nil {
-			log.Printf("Error waiting for MCP server process: %v", err)
+			slog.Error("Error waiting for MCP server process", "error", err)
 		}
 	}
 }

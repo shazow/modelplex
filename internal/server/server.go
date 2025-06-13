@@ -1,8 +1,9 @@
+// Package server provides HTTP server functionality over Unix domain sockets.
 package server
 
 import (
 	"context"
-	"log"
+	"log/slog"
 	"net"
 	"net/http"
 	"os"
@@ -55,7 +56,7 @@ func (s *Server) Start() error {
 		WriteTimeout: 30 * time.Second,
 	}
 
-	log.Printf("Modelplex server listening on unix socket: %s", s.socketPath)
+	slog.Info("Modelplex server listening", "socket", s.socketPath)
 	return s.server.Serve(listener)
 }
 
@@ -64,16 +65,16 @@ func (s *Server) Stop() {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 		if err := s.server.Shutdown(ctx); err != nil {
-			log.Printf("Error shutting down server: %v", err)
+			slog.Error("Error shutting down server", "error", err)
 		}
 	}
 	if s.listener != nil {
 		if err := s.listener.Close(); err != nil {
-			log.Printf("Error closing listener: %v", err)
+			slog.Error("Error closing listener", "error", err)
 		}
 	}
 	if err := os.RemoveAll(s.socketPath); err != nil {
-		log.Printf("Error removing socket path: %v", err)
+		slog.Error("Error removing socket path", "path", s.socketPath, "error", err)
 	}
 }
 
@@ -93,6 +94,6 @@ func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	if _, err := w.Write([]byte(`{"status":"ok","service":"modelplex"}`)); err != nil {
-		log.Printf("Error writing health response: %v", err)
+		slog.Error("Error writing health response", "error", err)
 	}
 }

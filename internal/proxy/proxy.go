@@ -1,9 +1,10 @@
+// Package proxy provides OpenAI-compatible API proxy functionality.
 package proxy
 
 import (
 	"encoding/json"
 	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
 	"strings"
 )
@@ -91,8 +92,8 @@ func (p *OpenAIProxy) decodeJSONRequest(r *http.Request, req interface{}, w http
 
 func (p *OpenAIProxy) handleResponse(w http.ResponseWriter, result interface{}, err error, operation string) {
 	if err != nil {
-		log.Printf("%s error: %v", operation, err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		slog.Error("Operation failed", "operation", operation, "error", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 	p.writeJSONResponse(w, result, operation)
@@ -101,7 +102,7 @@ func (p *OpenAIProxy) handleResponse(w http.ResponseWriter, result interface{}, 
 func (p *OpenAIProxy) writeJSONResponse(w http.ResponseWriter, data interface{}, responseType string) {
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(data); err != nil {
-		log.Printf("Failed to encode %s response: %v", responseType, err)
+		slog.Error("Failed to encode response", "type", responseType, "error", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
@@ -126,6 +127,6 @@ func writeError(w http.ResponseWriter, statusCode int, message string) {
 	}
 
 	if err := json.NewEncoder(w).Encode(errorResp); err != nil {
-		log.Printf("Failed to encode error response: %v", err)
+		slog.Error("Failed to encode error response", "error", err)
 	}
 }

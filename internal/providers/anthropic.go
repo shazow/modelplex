@@ -1,3 +1,10 @@
+// Package providers implements AI provider abstractions.
+// AnthropicProvider provides Anthropic Claude API integration with key differences from OpenAI:
+// - Uses "x-api-key" header instead of "Authorization: Bearer"
+// - Requires "anthropic-version" header for API versioning
+// - Transforms OpenAI message format: system messages become separate "system" field
+// - Uses "/messages" endpoint instead of "/chat/completions"
+// - Requires explicit max_tokens parameter (defaults to 4096)
 package providers
 
 import (

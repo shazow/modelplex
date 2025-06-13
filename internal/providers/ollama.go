@@ -1,3 +1,10 @@
+// Package providers implements AI provider abstractions.
+// OllamaProvider provides local Ollama API integration with key differences from OpenAI:
+// - No authentication required (local server)
+// - Uses "/api/chat" and "/api/generate" endpoints instead of "/chat/completions" and "/completions"
+// - Requires explicit "stream": false parameter to disable streaming
+// - Typically runs on localhost:11434 by default
+// - Supports local LLM models without external API dependencies
 package providers
 
 import (

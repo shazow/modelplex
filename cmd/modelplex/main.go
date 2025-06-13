@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
@@ -48,25 +48,32 @@ func main() {
 	}
 
 	if opts.Verbose {
-		log.SetFlags(log.LstdFlags | log.Lshortfile)
-		log.Println("Verbose logging enabled")
+		slog.SetDefault(slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
+			Level:     slog.LevelDebug,
+			AddSource: true,
+		})))
+		slog.Info("Verbose logging enabled")
+	} else {
+		slog.SetDefault(slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
+			Level: slog.LevelInfo,
+		})))
 	}
 
 	cfg, err := config.Load(opts.Config)
 	if err != nil {
-		log.Fatalf("Failed to load config from %s: %v", opts.Config, err)
+		slog.Error("Failed to load config", "file", opts.Config, "error", err)
+		os.Exit(1)
 	}
 
-	if opts.Verbose {
-		log.Printf("Loaded configuration from %s", opts.Config)
-		log.Printf("Starting server on socket: %s", opts.Socket)
-	}
+	slog.Info("Loaded configuration", "file", opts.Config)
+	slog.Info("Starting server", "socket", opts.Socket)
 
 	srv := server.New(cfg, opts.Socket)
 
 	go func() {
 		if err := srv.Start(); err != nil {
-			log.Fatalf("Server failed: %v", err)
+			slog.Error("Server failed", "error", err)
+			os.Exit(1)
 		}
 	}()
 
@@ -74,6 +81,6 @@ func main() {
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 	<-sigChan
 
-	log.Println("Shutting down...")
+	slog.Info("Shutting down...")
 	srv.Stop()
 }

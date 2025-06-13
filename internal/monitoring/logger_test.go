@@ -2,14 +2,12 @@ package monitoring
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
-	"log"
+	"log/slog"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestNewLogger(t *testing.T) {
@@ -67,32 +65,23 @@ func TestLogger_LogRequest(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Capture log output
+			// Capture slog output
 			var buf bytes.Buffer
-			log.SetOutput(&buf)
-			defer log.SetOutput(nil)
+			handler := slog.NewTextHandler(&buf, nil)
+			oldLogger := slog.Default()
+			slog.SetDefault(slog.New(handler))
+			defer slog.SetDefault(oldLogger)
 
 			logger := NewLogger(tt.enabled)
 			logger.LogRequest(tt.requestLog)
 
 			output := buf.String()
 			if tt.expectOutput {
-				assert.Contains(t, output, "REQUEST_LOG:")
+				assert.Contains(t, output, "Request logged")
 				assert.Contains(t, output, tt.requestLog.RequestID)
 				assert.Contains(t, output, tt.requestLog.Model)
 				assert.Contains(t, output, tt.requestLog.Provider)
-
-				// Parse and verify JSON structure
-				jsonStart := bytes.Index(buf.Bytes(), []byte("{"))
-				if jsonStart != -1 {
-					var logData RequestLog
-					err := json.Unmarshal(buf.Bytes()[jsonStart:], &logData)
-					require.NoError(t, err)
-					assert.Equal(t, tt.requestLog.RequestID, logData.RequestID)
-					assert.Equal(t, tt.requestLog.Model, logData.Model)
-					assert.Equal(t, tt.requestLog.Success, logData.Success)
-					assert.NotZero(t, logData.Timestamp)
-				}
+				assert.Contains(t, output, "INFO")
 			} else {
 				assert.Empty(t, output)
 			}
@@ -130,30 +119,21 @@ func TestLogger_LogError(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var buf bytes.Buffer
-			log.SetOutput(&buf)
-			defer log.SetOutput(nil)
+			handler := slog.NewTextHandler(&buf, nil)
+			oldLogger := slog.Default()
+			slog.SetDefault(slog.New(handler))
+			defer slog.SetDefault(oldLogger)
 
 			logger := NewLogger(tt.enabled)
 			logger.LogError(tt.component, tt.message, tt.err)
 
 			output := buf.String()
 			if tt.expectOutput {
-				assert.Contains(t, output, "ERROR_LOG:")
+				assert.Contains(t, output, "Component error")
 				assert.Contains(t, output, tt.component)
 				assert.Contains(t, output, tt.message)
 				assert.Contains(t, output, tt.err.Error())
-
-				// Parse and verify JSON structure
-				jsonStart := bytes.Index(buf.Bytes(), []byte("{"))
-				if jsonStart != -1 {
-					var logData map[string]interface{}
-					err := json.Unmarshal(buf.Bytes()[jsonStart:], &logData)
-					require.NoError(t, err)
-					assert.Equal(t, tt.component, logData["component"])
-					assert.Equal(t, tt.message, logData["message"])
-					assert.Equal(t, tt.err.Error(), logData["error"])
-					assert.NotNil(t, logData["timestamp"])
-				}
+				assert.Contains(t, output, "ERROR")
 			} else {
 				assert.Empty(t, output)
 			}
@@ -194,39 +174,24 @@ func TestLogger_LogInfo(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var buf bytes.Buffer
-			log.SetOutput(&buf)
-			defer log.SetOutput(nil)
+			handler := slog.NewTextHandler(&buf, nil)
+			oldLogger := slog.Default()
+			slog.SetDefault(slog.New(handler))
+			defer slog.SetDefault(oldLogger)
 
 			logger := NewLogger(tt.enabled)
 			logger.LogInfo(tt.component, tt.message, tt.metadata)
 
 			output := buf.String()
 			if tt.expectOutput {
-				assert.Contains(t, output, "INFO_LOG:")
+				assert.Contains(t, output, "Component info")
 				assert.Contains(t, output, tt.component)
 				assert.Contains(t, output, tt.message)
+				assert.Contains(t, output, "INFO")
 
 				if tt.metadata != nil {
 					for key := range tt.metadata {
 						assert.Contains(t, output, key)
-					}
-				}
-
-				// Parse and verify JSON structure
-				jsonStart := bytes.Index(buf.Bytes(), []byte("{"))
-				if jsonStart != -1 {
-					var logData map[string]interface{}
-					err := json.Unmarshal(buf.Bytes()[jsonStart:], &logData)
-					require.NoError(t, err)
-					assert.Equal(t, tt.component, logData["component"])
-					assert.Equal(t, tt.message, logData["message"])
-					assert.NotNil(t, logData["timestamp"])
-
-					if tt.metadata != nil {
-						metadata := logData["metadata"].(map[string]interface{})
-						for key, value := range tt.metadata {
-							assert.Equal(t, value, metadata[key])
-						}
 					}
 				}
 			} else {
@@ -238,8 +203,10 @@ func TestLogger_LogInfo(t *testing.T) {
 
 func TestLogger_LogRequest_WithCompleteData(t *testing.T) {
 	var buf bytes.Buffer
-	log.SetOutput(&buf)
-	defer log.SetOutput(nil)
+	handler := slog.NewTextHandler(&buf, nil)
+	oldLogger := slog.Default()
+	slog.SetDefault(slog.New(handler))
+	defer slog.SetDefault(oldLogger)
 
 	logger := NewLogger(true)
 
@@ -260,27 +227,11 @@ func TestLogger_LogRequest_WithCompleteData(t *testing.T) {
 	logger.LogRequest(requestLog)
 
 	output := buf.String()
-	assert.Contains(t, output, "REQUEST_LOG:")
-
-	// Parse the JSON and verify all fields
-	jsonStart := bytes.Index(buf.Bytes(), []byte("{"))
-	require.Greater(t, jsonStart, -1)
-
-	var logData RequestLog
-	err := json.Unmarshal(buf.Bytes()[jsonStart:], &logData)
-	require.NoError(t, err)
-
-	assert.Equal(t, requestLog.RequestID, logData.RequestID)
-	assert.Equal(t, requestLog.Model, logData.Model)
-	assert.Equal(t, requestLog.Provider, logData.Provider)
-	assert.Equal(t, requestLog.Method, logData.Method)
-	assert.Equal(t, requestLog.TokensUsed, logData.TokensUsed)
-	assert.Equal(t, requestLog.Duration, logData.Duration)
-	assert.Equal(t, requestLog.Success, logData.Success)
-	assert.NotZero(t, logData.Timestamp)
-
-	// Verify metadata
-	require.NotNil(t, logData.Metadata)
-	assert.Equal(t, "user-123", logData.Metadata["user_id"])
-	assert.Equal(t, 0.7, logData.Metadata["temperature"])
+	assert.Contains(t, output, "Request logged")
+	assert.Contains(t, output, requestLog.RequestID)
+	assert.Contains(t, output, requestLog.Model)
+	assert.Contains(t, output, requestLog.Provider)
+	assert.Contains(t, output, "INFO")
+	assert.Contains(t, output, "user-123")
+	assert.Contains(t, output, "0.7")
 }

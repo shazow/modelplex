@@ -83,7 +83,9 @@ log_level = "debug"
 
 			_, err = tmpFile.WriteString(tt.configData)
 			require.NoError(t, err)
-			tmpFile.Close()
+			if err := tmpFile.Close(); err != nil {
+				t.Errorf("Failed to close temp file: %v", err)
+			}
 
 			// Test loading
 			cfg, err := Load(tmpFile.Name())
