@@ -112,26 +112,10 @@ api_key = "${OPENAI_API_KEY}"
 models = ["gpt-4", "gpt-3.5-turbo"]
 priority = 1
 
-[[providers]]
-name = "anthropic"
-type = "anthropic"
-base_url = "https://api.anthropic.com/v1"
-api_key = "${ANTHROPIC_API_KEY}"
-models = ["claude-3-sonnet", "claude-3-haiku"]
-priority = 2
-
-[[providers]]
-name = "local"
-type = "ollama"
-base_url = "http://localhost:11434"
-models = ["llama2", "codellama"]
-priority = 3
-
 [mcp]
 enabled = true
 servers = [
     { name = "filesystem", command = "mcp-server-filesystem", args = ["/workspace"] },
-    { name = "postgres", command = "mcp-server-postgres", args = ["postgresql://..."] }
 ]
 ```
 
@@ -208,59 +192,6 @@ Help Options:
   -h, --help     Show this help message
 ```
 
-## Development
-
-### Building
-
-```bash
-# Install dependencies
-go mod download
-
-# Run tests
-go test -v ./...
-
-# Run with coverage
-go test -v -coverprofile=coverage.out ./...
-
-# Run integration tests
-go test -v -run Integration ./test/integration/...
-
-# Build
-go build -o modelplex ./cmd/modelplex
-```
-
-### Testing
-
-The project includes comprehensive test coverage:
-
-- **55+ tests** across all components
-- **Unit tests** for providers, multiplexer, proxy, server
-- **Integration tests** for full system validation
-- **Mock-based testing** with testify framework
-- **Race detection** for concurrent safety
-
-```bash
-# Run all tests
-go test -v ./...
-
-# Run tests with race detection
-go test -v -race ./...
-
-# Generate coverage report
-go test -v -coverprofile=coverage.out ./...
-go tool cover -html=coverage.out
-```
-
-### CI/CD
-
-GitHub Actions pipeline includes:
-
-- **Multi-Go version testing** (1.23, 1.24.4)
-- **Linting** with golangci-lint
-- **Security scanning** with gosec and govulncheck
-- **Multi-platform builds** (Linux, macOS, Windows, ARM64)
-- **Docker image building**
-- **Codecov integration**
 
 ## Configuration
 
@@ -319,42 +250,7 @@ servers = [
 - `CONFIG_FILE`: Override default config file path
 - `SOCKET_PATH`: Override default socket path
 
-## API Compatibility
-
-Modelplex provides full OpenAI API compatibility:
-
-### Supported Endpoints
-
-- `POST /v1/chat/completions` - Chat completions (all providers)
-- `POST /v1/completions` - Text completions (OpenAI, Ollama)
-- `GET /v1/models` - List available models
-- `GET /health` - Health check endpoint
-
-### Request/Response Format
-
-All requests and responses follow OpenAI's specification. Provider-specific differences are handled internally:
-
-- **Anthropic**: System messages moved to separate field, response format normalized
-- **Ollama**: Stream parameter set to false, response format normalized
-- **OpenAI**: Direct passthrough
-
 ## Docker
-
-```dockerfile
-# Multi-stage build for minimal image
-FROM golang:1.24.4-alpine AS builder
-WORKDIR /app
-COPY go.mod go.sum ./
-RUN go mod download
-COPY . .
-RUN go build -o modelplex ./cmd/modelplex
-
-FROM alpine:latest
-RUN apk --no-cache add ca-certificates
-WORKDIR /root/
-COPY --from=builder /app/modelplex .
-CMD ["./modelplex"]
-```
 
 ```bash
 # Build and run
@@ -364,42 +260,6 @@ docker run -v /path/to/config.toml:/config.toml \
            modelplex --config /config.toml --socket /socket/modelplex.socket
 ```
 
-## Roadmap
-
-- [ ] **Real-time configuration updates** without restart
-- [ ] **Advanced monitoring dashboard** with metrics and alerts  
-- [ ] **Additional AI provider integrations** (Google AI, Azure OpenAI)
-- [ ] **Enhanced MCP tool aggregation** with permission controls
-- [ ] **WebSocket support** for streaming responses
-- [ ] **Load balancing** across multiple provider instances
-- [ ] **Request caching** and response optimization
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Run tests (`go test -v ./...`)
-4. Commit your changes (`git commit -am 'Add amazing feature'`)
-5. Push to the branch (`git push origin feature/amazing-feature`)
-6. Create a Pull Request
-
-### Development Guidelines
-
-- **Go 1.24+** required
-- **Comprehensive tests** for new features
-- **Structured logging** with slog
-- **Security-first** approach
-- **OpenAI API compatibility** maintained
-
 ## License
 
 MIT License - see [LICENSE](LICENSE) file for details.
-
-## Security
-
-Report security vulnerabilities to [security@modelplex.dev](mailto:security@modelplex.dev).
-
-- Regular security scanning with govulncheck
-- Dependency vulnerability monitoring
-- Structured logging prevents injection attacks
-- Unix socket isolation for network security
