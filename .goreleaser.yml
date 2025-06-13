@@ -1,0 +1,121 @@
+# GoReleaser configuration for Modelplex
+project_name: modelplex
+
+before:
+  hooks:
+    - go mod tidy
+    - go test ./...
+
+builds:
+  - id: modelplex
+    main: ./cmd/modelplex
+    binary: modelplex
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+
+archives:
+  - id: modelplex
+    builds:
+      - modelplex
+    format: tar.gz
+    format_overrides:
+      - goos: windows
+        format: zip
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    files:
+      - config.toml
+      - README.md
+      - LICENSE
+
+checksum:
+  name_template: 'checksums.txt'
+
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^ci:'
+      - '^chore:'
+      - '^style:'
+      - '^refactor:'
+
+release:
+  github:
+    owner: modelplex
+    name: modelplex
+  draft: false
+  prerelease: auto
+  name_template: "Modelplex {{.Version}}"
+  header: |
+    ## Modelplex {{.Version}}
+    
+    **Run AI agents in complete network isolation.**
+    
+    ### Changes
+  footer: |
+    ### Installation
+    
+    Download the appropriate binary for your platform from the assets below.
+    
+    ### Docker
+    
+    ```bash
+    docker run --rm -v ./config.toml:/app/config.toml -v /tmp:/tmp ghcr.io/modelplex/modelplex:{{.Version}}
+    ```
+
+docker_manifests:
+  - name_template: ghcr.io/modelplex/modelplex:{{ .Version }}
+    image_templates:
+      - ghcr.io/modelplex/modelplex:{{ .Version }}-amd64
+      - ghcr.io/modelplex/modelplex:{{ .Version }}-arm64
+  - name_template: ghcr.io/modelplex/modelplex:latest
+    image_templates:
+      - ghcr.io/modelplex/modelplex:{{ .Version }}-amd64
+      - ghcr.io/modelplex/modelplex:{{ .Version }}-arm64
+
+dockers:
+  - id: modelplex-amd64
+    goos: linux
+    goarch: amd64
+    image_templates:
+      - ghcr.io/modelplex/modelplex:{{ .Version }}-amd64
+    dockerfile: Dockerfile
+    use: buildx
+    build_flag_templates:
+      - --platform=linux/amd64
+  
+  - id: modelplex-arm64
+    goos: linux
+    goarch: arm64
+    image_templates:
+      - ghcr.io/modelplex/modelplex:{{ .Version }}-arm64
+    dockerfile: Dockerfile
+    use: buildx
+    build_flag_templates:
+      - --platform=linux/arm64
