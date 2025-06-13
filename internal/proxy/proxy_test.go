@@ -54,9 +54,9 @@ func TestOpenAIProxy_HandleChatCompletions(t *testing.T) {
 			mockResponse: map[string]interface{}{
 				"id":      "chatcmpl-123",
 				"object":  "chat.completion",
-				"created": 1677652288,
-				"choices": []map[string]interface{}{
-					{
+				"created": float64(1677652288),
+				"choices": []interface{}{
+					map[string]interface{}{
 						"message": map[string]interface{}{
 							"role":    "assistant",
 							"content": "Hello! How can I help you?",
@@ -159,11 +159,11 @@ func TestOpenAIProxy_HandleCompletions(t *testing.T) {
 	mockResponse := map[string]interface{}{
 		"id":      "cmpl-123",
 		"object":  "text_completion",
-		"created": 1677652288,
-		"choices": []map[string]interface{}{
-			{
+		"created": float64(1677652288),
+		"choices": []interface{}{
+			map[string]interface{}{
 				"text":  " with something interesting.",
-				"index": 0,
+				"index": float64(0),
 			},
 		},
 	}
