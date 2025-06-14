@@ -4,21 +4,27 @@ Decouple models and MCP integrations from the agent.
 
 **With modelplex, we can run AI agents in complete network isolation.** No outbound connections. Full AI capabilities.
 
-```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   Guest VM      │    │   Modelplex      │    │   Providers     │
-│                 │    │   (Host)         │    │                 │
-│  ┌───────────┐  │    │  ┌─────────────┐ │    │ ┌─────────────┐ │
-│  │    LLM    │  │    │  │   Model     │ │    │ │   OpenAI    │ │
-│  │   Agent   │◄─┼────┼─►│ Multiplexer │◄┼────┼►│  Anthropic  │ │
-│  └───────────┘  │    │  └─────────────┘ │    │ │   Ollama    │ │
-│                 │    │  ┌─────────────┐ │    │ └─────────────┘ │
-│                 │    │  │    MCP      │ │    │                 │
-│                 │    │  │ Integration │◄┼────┼─► MCP Servers   │
-│                 │    │  └─────────────┘ │    │                 │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-        │                        │
-        └────modelplex.socket────┘
+```mermaid
+graph LR
+    subgraph GuestVM ["Guest VM"]
+        LLMAgent["LLM Agent"]
+    end
+    
+    subgraph Modelplex ["Modelplex (Host)"]
+        ModelMux["Model Multiplexer"]
+        MCPInt["MCP Integration"]
+    end
+    
+    subgraph Providers ["Providers"]
+        APIs["OpenAI<br/>Anthropic<br/>Ollama"]
+        MCPServers["MCP Servers"]
+    end
+    
+    LLMAgent <--> ModelMux
+    ModelMux <--> APIs
+    MCPInt <--> MCPServers
+    
+    GuestVM -.->|modelplex.socket| Modelplex
 ```
 
 ## Features
@@ -129,4 +135,4 @@ docker run -v /path/to/config.toml:/config.toml \
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) file for details.
+MIT
