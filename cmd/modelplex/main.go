@@ -17,7 +17,9 @@ import (
 // Options defines command line options
 type Options struct {
 	Config  string `short:"c" long:"config" default:"config.toml" description:"Path to configuration file"`
-	Socket  string `short:"s" long:"socket" default:"./modelplex.socket" description:"Path to Unix socket"`
+	Socket  string `short:"s" long:"socket" description:"Path to Unix socket (optional, HTTP server used by default)"`
+	Port    int    `short:"p" long:"port" default:"11435" description:"HTTP server port"`
+	Host    string `long:"host" default:"localhost" description:"HTTP server host"`
 	Verbose bool   `short:"v" long:"verbose" description:"Enable verbose logging"`
 	Version bool   `long:"version" description:"Show version information"`
 }
@@ -68,9 +70,15 @@ func main() {
 	}
 
 	slog.Info("Loaded configuration", "file", opts.Config)
-	slog.Info("Starting server", "socket", opts.Socket)
 
-	srv := server.New(cfg, opts.Socket)
+	var srv *server.Server
+	if opts.Socket != "" {
+		slog.Info("Starting server", "socket", opts.Socket)
+		srv = server.NewWithSocket(cfg, opts.Socket)
+	} else {
+		slog.Info("Starting server", "host", opts.Host, "port", opts.Port)
+		srv = server.NewWithHTTP(cfg, opts.Host, opts.Port)
+	}
 
 	go func() {
 		if err := srv.Start(); err != nil {

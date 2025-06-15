@@ -17,7 +17,9 @@ func TestOptions_DefaultValues(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, "config.toml", opts.Config)
-	assert.Equal(t, "./modelplex.socket", opts.Socket)
+	assert.Equal(t, "", opts.Socket) // Socket is now optional, empty by default
+	assert.Equal(t, 11435, opts.Port) // New default port
+	assert.Equal(t, "localhost", opts.Host) // New default host
 	assert.False(t, opts.Verbose)
 	assert.False(t, opts.Version)
 }
@@ -29,6 +31,8 @@ func TestOptions_CustomValues(t *testing.T) {
 	args := []string{
 		"--config", "/custom/config.toml",
 		"--socket", "/tmp/custom.socket",
+		"--port", "8080",
+		"--host", "0.0.0.0",
 		"--verbose",
 	}
 	_, err := parser.ParseArgs(args)
@@ -36,6 +40,8 @@ func TestOptions_CustomValues(t *testing.T) {
 
 	assert.Equal(t, "/custom/config.toml", opts.Config)
 	assert.Equal(t, "/tmp/custom.socket", opts.Socket)
+	assert.Equal(t, 8080, opts.Port)
+	assert.Equal(t, "0.0.0.0", opts.Host)
 	assert.True(t, opts.Verbose)
 	assert.False(t, opts.Version)
 }
@@ -47,6 +53,8 @@ func TestOptions_ShortFlags(t *testing.T) {
 	args := []string{
 		"-c", "short.toml",
 		"-s", "short.socket",
+		"-p", "9090",
+		"--host", "127.0.0.1", // Use long form since -h is reserved for help
 		"-v",
 	}
 	_, err := parser.ParseArgs(args)
@@ -54,6 +62,8 @@ func TestOptions_ShortFlags(t *testing.T) {
 
 	assert.Equal(t, "short.toml", opts.Config)
 	assert.Equal(t, "short.socket", opts.Socket)
+	assert.Equal(t, 9090, opts.Port)
+	assert.Equal(t, "127.0.0.1", opts.Host)
 	assert.True(t, opts.Verbose)
 }
 
