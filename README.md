@@ -126,12 +126,20 @@ curl --unix-socket ./modelplex.socket \
 ## Docker
 
 ```bash
-# Build and run
+# Build the image
 docker build -t modelplex .
-docker run -v /path/to/config.toml:/config.toml \
-           -v /path/to/socket:/socket \
-           modelplex --config /config.toml --socket /socket/modelplex.socket
+
+# Run with custom config and socket directory
+docker run -v /path/to/your/config.toml:/app/config.toml \
+           -v /path/to/socket/dir:/tmp/modelplex \
+           modelplex
+
+# Or run with default config and expose socket to host
+docker run -v /host/socket/dir:/tmp/modelplex \
+           modelplex
 ```
+
+The socket will be available at `/host/socket/dir/modelplex.socket` on your host system.
 
 ## License
 
