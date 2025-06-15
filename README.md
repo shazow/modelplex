@@ -73,11 +73,14 @@ servers = [
 ### 3. Start Modelplex
 
 ```bash
-# HTTP server (default - port 11435)
+# HTTP server (default - :11435)
 ./modelplex --config config.toml
 
-# HTTP server on custom port
-./modelplex --config config.toml --port 8080
+# HTTP server on custom address
+./modelplex --config config.toml --http "0.0.0.0:8080"
+
+# HTTP server on custom port (localhost)
+./modelplex --config config.toml --http ":8080"
 
 # Socket mode for zero-network-dependency isolation
 ./modelplex --config config.toml --socket ./modelplex.socket
@@ -199,8 +202,8 @@ docker build -t modelplex .
 # Run with HTTP server (default)
 docker run -p 11435:11435 -v /path/to/config.toml:/config.toml modelplex
 
-# Run with custom port
-docker run -p 8080:8080 -v /path/to/config.toml:/config.toml modelplex --port 8080
+# Run with custom address
+docker run -p 8080:8080 -v /path/to/config.toml:/config.toml modelplex --http ":8080"
 
 # Run with socket
 docker run -v /path/to/config.toml:/config.toml \

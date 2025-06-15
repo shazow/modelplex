@@ -35,7 +35,7 @@ func TestHTTPServerByDefault(t *testing.T) {
 	}
 
 	// Test HTTP server creation
-	srv := server.NewWithHTTP(cfg, "127.0.0.1", 0) // Use port 0 to get a random available port
+	srv := server.NewWithHTTPAddress(cfg, "127.0.0.1:0") // Use port 0 to get a random available port
 	
 	// Start server in goroutine
 	go func() {
@@ -126,7 +126,7 @@ func TestEndpointStructure(t *testing.T) {
 	listener.Close()
 
 	// Start HTTP server
-	srv := server.NewWithHTTP(cfg, "127.0.0.1", port)
+	srv := server.NewWithHTTPAddress(cfg, fmt.Sprintf("127.0.0.1:%d", port))
 	
 	go func() {
 		if err := srv.Start(); err != nil && err != http.ErrServerClosed {
@@ -312,7 +312,7 @@ func TestInternalStatusEndpoint(t *testing.T) {
 	listener.Close()
 
 	// Start HTTP server
-	srv := server.NewWithHTTP(cfg, "127.0.0.1", port)
+	srv := server.NewWithHTTPAddress(cfg, fmt.Sprintf("127.0.0.1:%d", port))
 	
 	go func() {
 		if err := srv.Start(); err != nil && err != http.ErrServerClosed {
@@ -340,7 +340,7 @@ func TestInternalStatusEndpoint(t *testing.T) {
 	}
 	
 	// Verify status content
-	expectedFields := []string{"service", "status", "mode", "host", "port", "providers", "mcp_servers"}
+	expectedFields := []string{"service", "status", "mode", "address", "providers", "mcp_servers"}
 	for _, field := range expectedFields {
 		if _, exists := status[field]; !exists {
 			t.Errorf("Expected field %s in status response", field)

@@ -12,8 +12,8 @@ echo "✓ Build complete"
 echo
 
 # Start server in background
-echo "Starting modelplex server on port 11435..."
-./modelplex --port 11435 &
+echo "Starting modelplex server on :11435..."
+./modelplex --http ":11435" &
 SERVER_PID=$!
 echo "✓ Server started (PID: $SERVER_PID)"
 echo

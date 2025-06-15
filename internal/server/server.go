@@ -31,6 +31,7 @@ type Server struct {
 	socketPath string
 	host       string
 	port       int
+	httpAddr   string
 	useSocket  bool
 	listener   net.Listener
 	server     *http.Server
@@ -47,6 +48,20 @@ func NewWithSocket(cfg *config.Config, socketPath string) *Server {
 		config:     cfg,
 		socketPath: socketPath,
 		useSocket:  true,
+		mux:        mux,
+		proxy:      proxy,
+	}
+}
+
+// NewWithHTTPAddress creates a new server instance with HTTP using address string.
+func NewWithHTTPAddress(cfg *config.Config, addr string) *Server {
+	mux := multiplexer.New(cfg.Providers)
+	proxy := proxy.New(mux)
+
+	return &Server{
+		config:     cfg,
+		httpAddr:   addr,
+		useSocket:  false,
 		mux:        mux,
 		proxy:      proxy,
 	}
@@ -88,12 +103,17 @@ func (s *Server) Start() error {
 		}
 		slog.Info("Modelplex server listening", "socket", s.socketPath)
 	} else {
-		addr := fmt.Sprintf("%s:%d", s.host, s.port)
+		var addr string
+		if s.httpAddr != "" {
+			addr = s.httpAddr
+		} else {
+			addr = fmt.Sprintf("%s:%d", s.host, s.port)
+		}
 		listener, err = net.Listen("tcp", addr)
 		if err != nil {
 			return err
 		}
-		slog.Info("Modelplex server listening", "host", s.host, "port", s.port)
+		slog.Info("Modelplex server listening", "address", addr)
 	}
 
 	s.listener = listener
@@ -195,11 +215,18 @@ func (s *Server) handleInternalStatus(w http.ResponseWriter, r *http.Request) {
 		"service":     "modelplex",
 		"status":      "running",
 		"mode":        "http",
-		"host":        s.host,
-		"port":        s.port,
 		"providers":   len(s.config.Providers),
 		"mcp_servers": len(s.config.MCP.Servers),
 	}
+	
+	// Add address information
+	if s.httpAddr != "" {
+		status["address"] = s.httpAddr
+	} else if s.host != "" && s.port != 0 {
+		status["host"] = s.host
+		status["port"] = s.port
+	}
+	
 	if err := json.NewEncoder(w).Encode(status); err != nil {
 		slog.Error("Error writing internal status response", "error", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
